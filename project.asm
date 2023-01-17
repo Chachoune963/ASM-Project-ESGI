@@ -52,7 +52,7 @@ fmt_min: db "Minimum: %d", 10, 0
 
 section .bss
 display_name:	resq	1
-screen:			resd	1
+screen:		resd	1
 depth:         	resd	1
 connection:    	resd	1
 width:         	resd	1
@@ -211,16 +211,16 @@ dessin:
         ;couleur du point 1
         mov rdi,qword[display_name]
         mov rsi,qword[gc]
-        mov edx,0x000000	; Couleur du crayon ; rouge
+        mov edx,0x000000	; Couleur noire
         call XSetForeground
         
-        ; Dessin d'un point rouge sous forme d'un petit rond : coordonnées (100,200)
+        ; Dessin d'un point du point
         mov rdi,qword[display_name]
         mov rsi,qword[window]
         mov rdx,qword[gc]	
-        movzx rcx, word [coordx+rbx*2] ; coordonnée en x du point
+        movzx rcx, word [coordx+rbx*2] ; coordonnée en x du point généré
         sub ecx,3		
-        movzx r8, word [coordy+rbx*2] ; coordonnée en y du point
+        movzx r8, word [coordy+rbx*2] ; coordonnée en y du point généré
         sub r8,3
         mov r9,6
         mov rax,23040

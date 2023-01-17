@@ -54,7 +54,7 @@
     52                                  
     53                                  section .bss
     54 00000000 ????????????????        display_name:	resq	1
-    55 00000008 ????????                screen:			resd	1
+    55 00000008 ????????                screen:		resd	1
     56 0000000C ????????                depth:         	resd	1
     57 00000010 ????????                connection:    	resd	1
     58 00000014 ????????                width:         	resd	1
@@ -224,17 +224,17 @@
    211                                          ;couleur du point 1
    212 00000211 488B3C25[00000000]              mov rdi,qword[display_name]
    213 00000219 488B3425[24000000]              mov rsi,qword[gc]
-   214 00000221 BA00000000                      mov edx,0x000000	; Couleur du crayon ; rouge
+   214 00000221 BA00000000                      mov edx,0x000000	; Couleur noire
    215 00000226 E8(00000000)                    call XSetForeground
    216                                          
-   217                                          ; Dessin d'un point rouge sous forme d'un petit rond : coordonnées (100,200)
+   217                                          ; Dessin d'un point du point
    218 0000022B 488B3C25[00000000]              mov rdi,qword[display_name]
    219 00000233 488B3425[1C000000]              mov rsi,qword[window]
    220 0000023B 488B1425[24000000]              mov rdx,qword[gc]	
-   221 00000243 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; coordonnée en x du point
+   221 00000243 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; coordonnée en x du point généré
    221 00000248 [2C000000]         
    222 0000024C 83E903                          sub ecx,3		
-   223 0000024F 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; coordonnée en y du point
+   223 0000024F 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; coordonnée en y du point généré
    223 00000254 [40000000]         
    224 00000258 4983E803                        sub r8,3
    225 0000025C 41B906000000                    mov r9,6
