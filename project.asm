@@ -207,23 +207,20 @@ dessin:
     
     mov rbx, 0  
     draw_loop:
-        
-        movzx rax, word [coordx+rbx*2]
-        movzx rcx, word [coordy+rbx*2]
-        
+
         ;couleur du point 1
         mov rdi,qword[display_name]
         mov rsi,qword[gc]
-        mov edx,0xFF0000	; Couleur du crayon ; rouge
+        mov edx,0x000000	; Couleur du crayon ; rouge
         call XSetForeground
         
         ; Dessin d'un point rouge sous forme d'un petit rond : coordonnées (100,200)
         mov rdi,qword[display_name]
         mov rsi,qword[window]
-        mov rdx,qword[gc]
-        mov rcx,rax		; coordonnée en x du point
-        sub ecx,3
-        mov r8,rcx 		; coordonnée en y du point
+        mov rdx,qword[gc]	
+        movzx rcx, word [coordx+rbx*2] ; coordonnée en x du point
+        sub ecx,3		
+        movzx r8, word [coordy+rbx*2] ; coordonnée en y du point
         sub r8,3
         mov r9,6
         mov rax,23040
@@ -231,17 +228,7 @@ dessin:
         push 0
         push r9
         call XFillArc
-        
-        ;#############
-        push rax
-        mov rdi, fmt_printf
-        mov rsi, rax
-        mov rax, 0
-        call printf
-        ;#############
-        
-        pop rax
-        
+
         ;++loopcounter
         inc rbx
         
