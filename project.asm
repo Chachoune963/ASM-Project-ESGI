@@ -137,17 +137,9 @@ jarvis:
         ; xPI * yIQ = r10 * r13
         imul r10w, r13w
         ; Produit vectoriel => r12
-        sub r12d, r10d
-        cmp r12d, 0
+        sub r12w, r10w
+        cmp r12w, 0
         jl notcandidate
-        
-        push rax
-        mov rdi, fmt_printf_test
-        mov dword[rsi], r12d
-        mov rax, 0
-        call printf
-        pop rax
-        
         
         mov rcx, rbx
         

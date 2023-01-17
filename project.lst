@@ -159,45 +159,44 @@
    137                                          ; xPI * yIQ = r10 * r13
    138 0000017F 66450FAFD5                      imul r10w, r13w
    139                                          ; Produit vectoriel => r12
-   140 00000184 4529D4                          sub r12d, r10d
-   141 00000187 4183FC00                        cmp r12d, 0
-   142 0000018B 7C35                            jl notcandidate
-   143                                          
-   144 0000018D 50                              push rax
-   145 0000018E 48BF-                           mov rdi, fmt_printf_test
-   145 00000190 [1500000000000000] 
-   146 00000198 448926                          mov dword[rsi], r12d
-   147 0000019B B800000000                      mov rax, 0
-   148 000001A0 E8(00000000)                    call printf
-   149 000001A5 58                              pop rax
+   140 00000184 664529D4                        sub r12w, r10w
+   141                                          
+   142 00000188 50                              push rax
+   143 00000189 48BF-                           mov rdi, fmt_printf_test
+   143 0000018B [1500000000000000] 
+   144 00000193 490FB7F4                        movzx rsi, r12w
+   145 00000197 B800000000                      mov rax, 0
+   146 0000019C E8(00000000)                    call printf
+   147 000001A1 58                              pop rax
+   148 000001A2 664183FC00                      cmp r12w, 0
+   149 000001A7 7C1C                            jl notcandidate
    150                                          
-   151                                          
-   152 000001A6 4889D9                          mov rcx, rbx
-   153                                          
-   154 000001A9 50                              push rax
-   155 000001AA 48BF-                           mov rdi, fmt_printf
-   155 000001AC [2100000000000000] 
-   156 000001B4 4889CE                          mov rsi, rcx
-   157 000001B7 B800000000                      mov rax, 0
-   158 000001BC E8(00000000)                    call printf
-   159 000001C1 58                              pop rax
-   160                                          
-   161                                          notcandidate:
-   162 000001C2 48FFC3                          inc rbx
-   163                                          
-   164 000001C5 4883FB14                        cmp rbx, NUM_POINTS
-   165 000001C9 0F8234FFFFFF                    jb parcoursPoints
-   166                                      ; rbx redevient l'index actuel de l'enveloppe)
-   167 000001CF 5B                          pop rbx
-   168 000001D0 48FFC3                      inc rbx
-   169 000001D3 4889C8                      mov rax, rcx    
-   170                                      
-   171 000001D6 663B0425[50000000]          cmp ax, word[enveloppe]
-   172 000001DE 0F85EFFEFFFF                jne jarvis
-   173                                  
-   174                                  ; Pour fermer le programme proprement :
-   175 000001E4 B83C000000              mov    rax, 60         
-   176 000001E9 BF00000000              mov    rdi, 0
-   177 000001EE 0F05                    syscall
-   178                                  
-   179 000001F0 C3                      ret
+   151 000001A9 4889D9                          mov rcx, rbx
+   152                                          
+   153 000001AC 50                              push rax
+   154 000001AD 48BF-                           mov rdi, fmt_printf
+   154 000001AF [2100000000000000] 
+   155 000001B7 4889CE                          mov rsi, rcx
+   156 000001BA B800000000                      mov rax, 0
+   157 000001BF E8(00000000)                    call printf
+   158 000001C4 58                              pop rax
+   159                                          
+   160                                          notcandidate:
+   161 000001C5 48FFC3                          inc rbx
+   162                                          
+   163 000001C8 4883FB14                        cmp rbx, NUM_POINTS
+   164 000001CC 0F8231FFFFFF                    jb parcoursPoints
+   165                                      ; rbx redevient l'index actuel de l'enveloppe)
+   166 000001D2 5B                          pop rbx
+   167 000001D3 48FFC3                      inc rbx
+   168 000001D6 4889C8                      mov rax, rcx    
+   169                                      
+   170 000001D9 663B0425[50000000]          cmp ax, word[enveloppe]
+   171 000001E1 0F85ECFEFFFF                jne jarvis
+   172                                  
+   173                                  ; Pour fermer le programme proprement :
+   174 000001E7 B83C000000              mov    rax, 60         
+   175 000001EC BF00000000              mov    rdi, 0
+   176 000001F1 0F05                    syscall
+   177                                  
+   178 000001F3 C3                      ret
