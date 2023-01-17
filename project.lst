@@ -2,102 +2,202 @@
      2                                  
      3                                  global main
      4                                  
-     5                                  %DEFINE NUM_POINTS 10
+     5                                  %DEFINE NUM_POINTS 20
      6                                  %DEFINE MAX_X 255
      7                                  %DEFINE MAX_Y 255
      8                                  
      9                                  section .data
-    10 00000000 25640A00                fmt_printf: db "%d", 10, 0
-    11 00000004 76733A2025640A00        fmt_index: db "vs: %d", 10, 0
-    12 0000000C 4D696E696D756D3A20-     fmt_min: db "Minimum: %d", 10, 0
-    12 00000015 25640A00           
+    10 00000000 506173736167652064-     pointcheck: db "Passage du point %d", 10, 0
+    10 00000009 7520706F696E742025-
+    10 00000012 640A00             
+    11 00000015 546573742064652025-     fmt_printf_test: db "Test de %d", 10, 0
+    11 0000001E 640A00             
+    12 00000021 52657573736974653A-     fmt_printf: db "Reussite: %d", 10, 0
+    12 0000002A 2025640A00         
     13                                  
     14                                  section .bss
-    15 00000000 <res 14h>               coordx: resw NUM_POINTS
-    16 00000014 <res 14h>               coordy: resw NUM_POINTS
-    17 00000028 ????                    randnum: resw 1
-    18 0000002A ????                    minpoint: resw 1
-    19                                  
-    20                                  section .text
-    21                                  main:
-    22                                  ; Génération des points du programme
-    23 00000000 BB00000000              mov rbx, 0
-    24                                  populatex:
-    25 00000005 660FC7F0                    rdrand ax
-    26 00000009 66890425[28000000]          mov [randnum], ax
-    27                                      modx:
-    28 00000011 66812C25[28000000]-             sub word[randnum], MAX_X
-    28 00000019 FF00               
-    29 0000001B 66813C25[28000000]-             cmp word[randnum], MAX_X
-    29 00000023 FF00               
-    30 00000025 73EA                            jae modx
-    31 00000027 668B0425[28000000]          mov ax, word[randnum]
-    32 0000002F 6689841B[00000000]          mov word[coordx+rbx*2], ax
-    33                                      
-    34 00000037 48BF-                       mov rdi, fmt_printf
-    34 00000039 [0000000000000000] 
-    35 00000041 480FB7B41B-                 movzx rsi, word[coordx+rbx*2]
-    35 00000046 [00000000]         
-    36 0000004A B800000000                  mov rax, 0
-    37 0000004F E8(00000000)                call printf
-    38                                      
-    39 00000054 48FFC3                      inc rbx
-    40 00000057 4883FB0A                    cmp rbx, NUM_POINTS
-    41 0000005B 72A8                        jb populatex
-    42                                  
-    43                                  populatey:
-    44 0000005D F9                          stc
-    45                                      checkcf:
-    46 0000005E 660FC7F0                        rdrand ax
-    47 00000062 73FA                        jnc checkcf
-    48 00000064 66890425[28000000]          mov [randnum], ax
-    49                                      mody:
-    50 0000006C 66812C25[28000000]-             sub word[randnum], MAX_Y
-    50 00000074 FF00               
-    51 00000076 66813C25[28000000]-             cmp word[randnum], MAX_Y
-    51 0000007E FF00               
-    52 00000080 73EA                            jae mody
-    53 00000082 668B0425[28000000]          mov ax, word[randnum]
-    54 0000008A 6689841B[14000000]          mov word[coordy+rbx*2], ax
-    55 00000092 48FFC3                      inc rbx
-    56 00000095 4883FB0A                    cmp rbx, NUM_POINTS
-    57 00000099 72C2                        jb populatey
-    58                                      
-    59                                  ; Trouver le point le plus à gauche
-    60 0000009B BB00000000              mov rbx, 0
-    61 000000A0 66891C25[2A000000]      mov word[minpoint], bx
-    62 000000A8 48FFC3                  inc rbx
-    63                                  minAlgo:
-    64                                      ; On récupère le point minimum actuel
-    65 000000AB 480FB70C25-                 movzx rcx, word[minpoint]
-    65 000000B0 [2A000000]         
-    66 000000B4 480FB78409-                 movzx rax, word[coordx+rcx*2]
-    66 000000B9 [00000000]         
-    67                                      
-    68                                      ; On le compare au point parcouru actuel
-    69 000000BD 663B841B[00000000]          cmp ax, word[coordx+rbx*2]
-    70 000000C5 720B                        jb higher
-    71                                              
-    72 000000C7 4889D8                      mov rax, rbx
-    73 000000CA 66890425[2A000000]          mov word[minpoint], ax
-    74                                  
-    75                                      higher:
-    76 000000D2 48FFC3                      inc rbx
-    77 000000D5 4883FB0A                    cmp rbx, NUM_POINTS
-    78 000000D9 72D0                        jb minAlgo
-    79                                  
-    80 000000DB 48BF-                   mov rdi, fmt_min
-    80 000000DD [0C00000000000000] 
-    81 000000E5 480FB73425-             movzx rsi, word[minpoint]
-    81 000000EA [2A000000]         
-    82 000000EE B800000000              mov rax, 0
-    83 000000F3 E8(00000000)            call printf
-    84                                  
-    85                                  
-    86                                  
-    87                                  ; Pour fermer le programme proprement :
-    88 000000F8 B83C000000              mov    rax, 60         
-    89 000000FD BF00000000              mov    rdi, 0
-    90 00000102 0F05                    syscall
-    91                                  
-    92 00000104 C3                      ret
+    15 00000000 <res 28h>               coordx: resw NUM_POINTS
+    16 00000028 <res 28h>               coordy: resw NUM_POINTS
+    17 00000050 <res 28h>               enveloppe: resw NUM_POINTS
+    18 00000078 ??                      sizeEnveloppe: resb 1
+    19 00000079 ????                    randnum: resw 1
+    20 0000007B ????                    minpoint: resw 1
+    21                                  
+    22                                  section .text
+    23                                  main:
+    24                                  ; Génération des points du programme
+    25 00000000 BB00000000              mov rbx, 0
+    26                                  populatex:
+    27 00000005 660FC7F0                    rdrand ax
+    28 00000009 66890425[79000000]          mov [randnum], ax
+    29                                      modx:
+    30 00000011 66812C25[79000000]-             sub word[randnum], MAX_X
+    30 00000019 FF00               
+    31 0000001B 66813C25[79000000]-             cmp word[randnum], MAX_X
+    31 00000023 FF00               
+    32 00000025 73EA                            jae modx
+    33 00000027 668B0425[79000000]          mov ax, word[randnum]
+    34 0000002F 6689841B[00000000]          mov word[coordx+rbx*2], ax
+    35                                      
+    36 00000037 48FFC3                      inc rbx
+    37 0000003A 4883FB14                    cmp rbx, NUM_POINTS
+    38 0000003E 72C5                        jb populatex
+    39                                  
+    40 00000040 BB00000000              mov rbx, 0
+    41                                  populatey:
+    42 00000045 660FC7F0                    rdrand ax
+    43 00000049 66890425[79000000]          mov word[randnum], ax
+    44                                      mody:
+    45 00000051 66812C25[79000000]-             sub word[randnum], MAX_Y
+    45 00000059 FF00               
+    46 0000005B 66813C25[79000000]-             cmp word[randnum], MAX_Y
+    46 00000063 FF00               
+    47 00000065 73EA                            jae mody
+    48 00000067 668B0425[79000000]          mov ax, word[randnum]
+    49 0000006F 6689841B[28000000]          mov word[coordy+rbx*2], ax
+    50                                  
+    51 00000077 48FFC3                      inc rbx
+    52 0000007A 4883FB14                    cmp rbx, NUM_POINTS
+    53 0000007E 72C5                        jb populatey
+    54                                      
+    55                                  ; Trouver le point le plus à gauche
+    56 00000080 BB00000000              mov rbx, 0
+    57 00000085 66891C25[7B000000]      mov word[minpoint], bx
+    58 0000008D 48FFC3                  inc rbx
+    59                                  minAlgo:
+    60                                      ; On récupère le point minimum actuel
+    61 00000090 480FB70C25-                 movzx rcx, word[minpoint]
+    61 00000095 [7B000000]         
+    62 00000099 480FB78409-                 movzx rax, word[coordx+rcx*2]
+    62 0000009E [00000000]         
+    63                                      
+    64                                      ; On le compare au point parcouru actuel
+    65 000000A2 663B841B[00000000]          cmp ax, word[coordx+rbx*2]
+    66 000000AA 720B                        jb lower
+    67                                              
+    68                                      ; Si minpoint > point actuel, on mets point actuel dans minpoint
+    69 000000AC 4889D8                      mov rax, rbx
+    70 000000AF 66890425[7B000000]          mov word[minpoint], ax
+    71                                  
+    72                                      lower:
+    73 000000B7 48FFC3                      inc rbx
+    74 000000BA 4883FB14                    cmp rbx, NUM_POINTS
+    75 000000BE 72D0                        jb minAlgo
+    76                                  
+    77                                  ; Une fois cette étape fini, nous connaissons le point le plus à gauche.
+    78                                  ; Marche de Jarvis
+    79                                  ; rax = Prochain point (P)
+    80                                  ; rbx = Index actuel de enveloppe (Pas d'équivalent, à ne pas utiliser pr l'instant)
+    81                                  ; rcx = Prochain candidat de P (Q)
+    82 000000C0 480FB70425-             movzx rax, word[minpoint]
+    82 000000C5 [7B000000]         
+    83 000000C9 BB00000000              mov rbx, 0
+    84 000000CE B900000000              mov rcx, 0
+    85                                  jarvis:
+    86                                      ; On mets le dernier resultat dans enveloppe
+    87 000000D3 6689841B[50000000]          mov word[enveloppe+rbx*2], ax
+    88                                          
+    89 000000DB 50                              push rax
+    90 000000DC 48BF-                           mov rdi, fmt_printf
+    90 000000DE [2100000000000000] 
+    91 000000E6 668BB41B[50000000]              mov si, word[enveloppe+rbx*2]
+    92 000000EE B800000000                      mov rax, 0
+    93 000000F3 E8(00000000)                    call printf
+    94 000000F8 58                              pop rax
+    95                                  
+    96 000000F9 480FB7C8                    movzx rcx, ax
+    97                                      
+    98 000000FD 53                          push rbx
+    99                                      ; rbx devient (I)
+   100 000000FE BB00000000                  mov rbx, 0
+   101                                      parcoursPoints:
+   102                                          
+   103 00000103 50                              push rax
+   104 00000104 48BF-                           mov rdi, pointcheck
+   104 00000106 [0000000000000000] 
+   105 0000010E 480FB7B41B-                     movzx rsi, word[coordy+rbx*2]
+   105 00000113 [28000000]         
+   106 00000117 B800000000                      mov rax, 0
+   107 0000011C E8(00000000)                    call printf
+   108 00000121 58                              pop rax
+   109                                  
+   110                                          ; Calcul du produit vectoriel
+   111                                          ; r8w = xP
+   112 00000122 66448B8400-                     mov r8w, word[coordx+rax*2]
+   112 00000127 [00000000]         
+   113                                          ; r9w = yP
+   114 0000012B 66448B8C00-                     mov r9w, word[coordy+rax*2]
+   114 00000130 [28000000]         
+   115                                          ; r10w = xI
+   116 00000134 66448B941B-                     mov r10w, word[coordx+rbx*2]
+   116 00000139 [00000000]         
+   117                                          ; r11w = yI
+   118 0000013D 66448B9C1B-                     mov r11w, word[coordy+rbx*2]
+   118 00000142 [28000000]         
+   119                                          ; r10 = r10 - r8 = xPI
+   120 00000146 664529C2                        sub r10w, r8w
+   121                                          ; r11 = r11 - r9 = yPI
+   122 0000014A 664529CB                        sub r11w, r9w
+   123                                          ; r8w = xI
+   124 0000014E 66448B841B-                     mov r8w, word[coordx+rbx*2]
+   124 00000153 [00000000]         
+   125                                          ; r9w = yI
+   126 00000157 66448B8C1B-                     mov r9w, word[coordy+rbx*2]
+   126 0000015C [28000000]         
+   127                                          ; r12 = xQ
+   128 00000160 66448BA409-                     mov r12w, word[coordx+rcx*2]
+   128 00000165 [00000000]         
+   129                                          ; r13 = yQ
+   130 00000169 66448BAC09-                     mov r13w, word[coordy+rcx*2]
+   130 0000016E [28000000]         
+   131                                          ; r12 = r12 - r8 = xIQ
+   132 00000172 664529C4                        sub r12w, r8w
+   133                                          ; r13 = r13 - r9 = yIQ
+   134 00000176 664529CD                        sub r13w, r9w
+   135                                          ; xIQ * yPI = r12 * r11
+   136 0000017A 66450FAFE3                      imul r12w, r11w
+   137                                          ; xPI * yIQ = r10 * r13
+   138 0000017F 66450FAFD5                      imul r10w, r13w
+   139                                          ; Produit vectoriel => r12
+   140 00000184 4529D4                          sub r12d, r10d
+   141 00000187 4183FC00                        cmp r12d, 0
+   142 0000018B 7C35                            jl notcandidate
+   143                                          
+   144 0000018D 50                              push rax
+   145 0000018E 48BF-                           mov rdi, fmt_printf_test
+   145 00000190 [1500000000000000] 
+   146 00000198 448926                          mov dword[rsi], r12d
+   147 0000019B B800000000                      mov rax, 0
+   148 000001A0 E8(00000000)                    call printf
+   149 000001A5 58                              pop rax
+   150                                          
+   151                                          
+   152 000001A6 4889D9                          mov rcx, rbx
+   153                                          
+   154 000001A9 50                              push rax
+   155 000001AA 48BF-                           mov rdi, fmt_printf
+   155 000001AC [2100000000000000] 
+   156 000001B4 4889CE                          mov rsi, rcx
+   157 000001B7 B800000000                      mov rax, 0
+   158 000001BC E8(00000000)                    call printf
+   159 000001C1 58                              pop rax
+   160                                          
+   161                                          notcandidate:
+   162 000001C2 48FFC3                          inc rbx
+   163                                          
+   164 000001C5 4883FB14                        cmp rbx, NUM_POINTS
+   165 000001C9 0F8234FFFFFF                    jb parcoursPoints
+   166                                      ; rbx redevient l'index actuel de l'enveloppe)
+   167 000001CF 5B                          pop rbx
+   168 000001D0 48FFC3                      inc rbx
+   169 000001D3 4889C8                      mov rax, rcx    
+   170                                      
+   171 000001D6 663B0425[50000000]          cmp ax, word[enveloppe]
+   172 000001DE 0F85EFFEFFFF                jne jarvis
+   173                                  
+   174                                  ; Pour fermer le programme proprement :
+   175 000001E4 B83C000000              mov    rax, 60         
+   176 000001E9 BF00000000              mov    rdi, 0
+   177 000001EE 0F05                    syscall
+   178                                  
+   179 000001F0 C3                      ret
