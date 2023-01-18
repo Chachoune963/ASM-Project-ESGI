@@ -57,7 +57,7 @@
     57 0000001C 6629D1                      sub cx, dx
     58                                      
     59 0000001F 6683F900                    cmp cx, 0
-    60 00000023 7E07                        jle clockwise
+    60 00000023 7C07                        jl clockwise
     61                                      
     62 00000025 B801000000                  mov eax, 1
     63 0000002A EB05                        jmp endori
@@ -70,7 +70,7 @@
     70                                  
     71                                  global main
     72                                  
-    73                                  %DEFINE NUM_POINTS 40
+    73                                  %DEFINE NUM_POINTS 5
     74                                  %DEFINE MAX_X 255
     75                                  %DEFINE MAX_Y 255
     76                                  
@@ -105,524 +105,624 @@
     96 00000154 00                 
     97 00000155 526573756C7461743A-     resultat: db "Resultat: %d", 10, 0
     97 0000015E 2025640A00         
-    98                                  
-    99                                  section .bss
-   100 00000000 ????????????????        display_name:	resq	1
-   101 00000008 ????????                screen:		resd	1
-   102 0000000C ????????                depth:         	resd	1
-   103 00000010 ????????                connection:    	resd	1
-   104 00000014 ????????                width:         	resd	1
-   105 00000018 ????????                height:        	resd	1
-   106 0000001C ????????????????        window:		resq	1
-   107 00000024 ????????????????        gc:		resq	1
-   108                                  
-   109 0000002C <res 50h>               coordx: resw NUM_POINTS
-   110 0000007C <res 50h>               coordy: resw NUM_POINTS
-   111 000000CC <res 50h>               enveloppe: resw NUM_POINTS
-   112 0000011C ??                      sizeEnveloppe: resb 1
-   113 0000011D ????                    randnum: resw 1
-   114 0000011F ????                    minpoint: resw 1
-   115                                  
-   116 00000121 ????                    P: resw 1
-   117 00000123 ????                    Q: resw 1
-   118 00000125 ????                    I: resw 1
-   119                                  
-   120                                  section .text
+    98 00000163 0A00660066006C0013-     coordx: dw 10, 102, 102, 108, 19
+    98 0000016C 00                 
+    99 0000016D AB000300B600670019-     coordy: dw 171, 3, 182, 103, 25
+    99 00000176 00                 
+   100                                  
+   101                                  section .bss
+   102 00000000 ????????????????        display_name:	resq	1
+   103 00000008 ????????                screen:		resd	1
+   104 0000000C ????????                depth:         	resd	1
+   105 00000010 ????????                connection:    	resd	1
+   106 00000014 ????????                width:         	resd	1
+   107 00000018 ????????                height:        	resd	1
+   108 0000001C ????????????????        window:		resq	1
+   109 00000024 ????????????????        gc:		resq	1
+   110                                  
+   111                                  ;coordx: resw NUM_POINTS
+   112                                  ;coordy: resw NUM_POINTS
+   113 0000002C <res Ah>                enveloppe: resw NUM_POINTS
+   114 00000036 ??                      sizeEnveloppe: resb 1
+   115 00000037 ????                    randnum: resw 1
+   116 00000039 ????                    minpoint: resw 1
+   117                                  
+   118 0000003B ????                    P: resw 1
+   119 0000003D ????                    Q: resw 1
+   120 0000003F ????                    I: resw 1
    121                                  
-   122                                  main:
-   123                                  ; Génération des points du programme
-   124 00000032 BB00000000              mov rbx, 0
-   125                                  populatex:
-   126 00000037 660FC7F0                    rdrand ax
-   127 0000003B 66890425[1D010000]          mov [randnum], ax
-   128                                      modx:
-   129 00000043 66812C25[1D010000]-             sub word[randnum], MAX_X
-   129 0000004B FF00               
-   130 0000004D 66813C25[1D010000]-             cmp word[randnum], MAX_X
-   130 00000055 FF00               
-   131 00000057 73EA                            jae modx
-   132 00000059 668B0425[1D010000]          mov ax, word[randnum]
-   133 00000061 6689841B[2C000000]          mov word[coordx+rbx*2], ax
-   134                                      
-   135 00000069 48FFC3                      inc rbx
-   136 0000006C 4883FB28                    cmp rbx, NUM_POINTS
-   137 00000070 72C5                        jb populatex
-   138                                  
-   139 00000072 BB00000000              mov rbx, 0
-   140                                  populatey:
-   141 00000077 F9                          stc
-   142                                      checkcf:
-   143 00000078 660FC7F0                        rdrand ax
-   144 0000007C 73FA                        jnc checkcf
-   145 0000007E 66890425[1D010000]          mov word[randnum], ax
-   146                                      mody:
-   147 00000086 66812C25[1D010000]-             sub word[randnum], MAX_Y
-   147 0000008E FF00               
-   148 00000090 66813C25[1D010000]-             cmp word[randnum], MAX_Y
-   148 00000098 FF00               
-   149 0000009A 73EA                            jae mody
-   150 0000009C 668B0425[1D010000]          mov ax, word[randnum]
-   151 000000A4 6689841B[7C000000]          mov word[coordy+rbx*2], ax
-   152                                  
-   153 000000AC 48FFC3                      inc rbx
-   154 000000AF 4883FB28                    cmp rbx, NUM_POINTS
-   155 000000B3 72C2                        jb populatey
-   156                                      
-   157 000000B5 BB00000000              mov rbx, 0
-   158                                  printloop:
-   159 000000BA 48BF-                       mov rdi, printx
-   159 000000BC [EF00000000000000] 
-   160 000000C4 480FB7B41B-                 movzx rsi, word[coordx+rbx*2]
-   160 000000C9 [2C000000]         
-   161 000000CD B800000000                  mov rax, 0
-   162 000000D2 E8(00000000)                call printf
-   163                                  
-   164 000000D7 48BF-                       mov rdi, printy
-   164 000000D9 [F700000000000000] 
-   165 000000E1 480FB7B41B-                 movzx rsi, word[coordy+rbx*2]
-   165 000000E6 [7C000000]         
-   166 000000EA B800000000                  mov rax, 0
-   167 000000EF E8(00000000)                call printf
-   168                                      
-   169 000000F4 48FFC3                      inc rbx
-   170 000000F7 4883FB28                    cmp rbx, NUM_POINTS
-   171 000000FB 72BD                        jb printloop
-   172                                  
-   173                                  ; Trouver le point le plus à gauche
-   174 000000FD BB00000000              mov rbx, 0
-   175 00000102 66891C25[1F010000]      mov word[minpoint], bx
-   176 0000010A 48FFC3                  inc rbx
-   177                                  minAlgo:
-   178                                      ; On récupère le point minimum actuel
-   179 0000010D 480FB70C25-                 movzx rcx, word[minpoint]
-   179 00000112 [1F010000]         
-   180 00000116 480FB78409-                 movzx rax, word[coordx+rcx*2]
-   180 0000011B [2C000000]         
-   181                                      
-   182                                      ; On le compare au point parcouru actuel
-   183 0000011F 663B841B[2C000000]          cmp ax, word[coordx+rbx*2]
-   184 00000127 760B                        jbe lower
-   185                                              
-   186                                      ; Si minpoint > point actuel, on mets point actuel dans minpoint
-   187 00000129 4889D8                      mov rax, rbx
-   188 0000012C 66890425[1F010000]          mov word[minpoint], ax
-   189                                  
-   190                                      lower:
-   191 00000134 48FFC3                      inc rbx
-   192 00000137 4883FB28                    cmp rbx, NUM_POINTS
-   193 0000013B 72D0                        jb minAlgo
-   194                                      
-   195                                  ; Une fois cette étape fini, nous connaissons le point le plus à gauche.
-   196                                  ; Marche de Jarvis
-   197                                  ; rax = Prochain point (P)
-   198                                  ; rbx = Index actuel de enveloppe (Pas d'équivalent, à ne pas utiliser pr l'instant)
-   199                                  ; rcx = Prochain candidat de P (Q)
-   200 0000013D 4831C0                  xor rax, rax
-   201 00000140 668B0425[1F010000]      mov ax, word[minpoint]
-   202 00000148 66890425[21010000]      mov word[P], ax
-   203 00000150 66C70425[1C010000]-     mov word[sizeEnveloppe], 0
-   203 00000158 0000               
-   204                                  jarvis:
-   205 0000015A 668B0425[21010000]          mov ax, word[P]
-   206 00000162 4831DB                      xor rbx, rbx
-   207 00000165 480FB71C25-                 movzx rbx, word[sizeEnveloppe]
-   207 0000016A [1C010000]         
-   208 0000016E 6689841B[CC000000]          mov word[enveloppe+rbx*2], ax
-   209                                      
-   210 00000176 66890425[23010000]          mov word[Q], ax
-   211 0000017E 66FF0425[23010000]          inc word[Q]
-   212 00000186 66833C25[23010000]-         cmp word[Q], NUM_POINTS
-   212 0000018E 28                 
-   213 0000018F 7209                        jb nofix
-   214                                      
-   215 00000191 66832C25[23010000]-         sub word[Q], NUM_POINTS
-   215 00000199 28                 
+   122 00000041 ????                    lastPointX: resw 1
+   123 00000043 ????                    lastPointY: resw 1
+   124 00000045 ??                      isInside: resb 1
+   125 00000046 ????                    checkIndex: resw 1
+   126                                  
+   127                                  section .text
+   128                                  
+   129                                  main:
+   130                                  ; Génération des points du programme
+   131                                  ;mov rbx, 0
+   132                                  ;populatex:
+   133                                  ;    rdrand ax
+   134                                  ;    mov [randnum], ax
+   135                                  ;    modx:
+   136                                  ;        sub word[randnum], MAX_X
+   137                                  ;        cmp word[randnum], MAX_X
+   138                                  ;        jae modx
+   139                                  ;    mov ax, word[randnum]
+   140                                  ;    mov word[coordx+rbx*2], ax
+   141                                  ;    
+   142                                  ;    inc rbx
+   143                                  ;    cmp rbx, NUM_POINTS
+   144                                  ;    jb populatex
+   145                                  
+   146                                  ;mov rbx, 0
+   147                                  ;populatey:
+   148                                  ;    stc
+   149                                  ;    checkcf:
+   150                                  ;        rdrand ax
+   151                                  ;    jnc checkcf
+   152                                  ;    mov word[randnum], ax
+   153                                  ;    mody:
+   154                                  ;        sub word[randnum], MAX_Y
+   155                                  ;        cmp word[randnum], MAX_Y
+   156                                  ;        jae mody
+   157                                  ;    mov ax, word[randnum]
+   158                                  ;    mov word[coordy+rbx*2], ax
+   159                                  ;
+   160                                  ;    inc rbx
+   161                                  ;    cmp rbx, NUM_POINTS
+   162                                  ;    jb populatey
+   163                                      
+   164 00000032 BB00000000              mov rbx, 0
+   165                                  printloop:
+   166 00000037 48BF-                       mov rdi, printx
+   166 00000039 [EF00000000000000] 
+   167 00000041 480FB7B41B-                 movzx rsi, word[coordx+rbx*2]
+   167 00000046 [63010000]         
+   168 0000004A B800000000                  mov rax, 0
+   169 0000004F E8(00000000)                call printf
+   170                                  
+   171 00000054 48BF-                       mov rdi, printy
+   171 00000056 [F700000000000000] 
+   172 0000005E 480FB7B41B-                 movzx rsi, word[coordy+rbx*2]
+   172 00000063 [6D010000]         
+   173 00000067 B800000000                  mov rax, 0
+   174 0000006C E8(00000000)                call printf
+   175                                      
+   176 00000071 48FFC3                      inc rbx
+   177 00000074 4883FB05                    cmp rbx, NUM_POINTS
+   178 00000078 72BD                        jb printloop
+   179                                  
+   180                                  ; Trouver le point le plus à gauche
+   181 0000007A BB00000000              mov rbx, 0
+   182 0000007F 66891C25[39000000]      mov word[minpoint], bx
+   183 00000087 48FFC3                  inc rbx
+   184                                  minAlgo:
+   185                                      ; On récupère le point minimum actuel
+   186 0000008A 480FB70C25-                 movzx rcx, word[minpoint]
+   186 0000008F [39000000]         
+   187 00000093 480FB78409-                 movzx rax, word[coordx+rcx*2]
+   187 00000098 [63010000]         
+   188                                      
+   189                                      ; On le compare au point parcouru actuel
+   190 0000009C 663B841B[63010000]          cmp ax, word[coordx+rbx*2]
+   191 000000A4 760B                        jbe lower
+   192                                              
+   193                                      ; Si minpoint > point actuel, on mets point actuel dans minpoint
+   194 000000A6 4889D8                      mov rax, rbx
+   195 000000A9 66890425[39000000]          mov word[minpoint], ax
+   196                                  
+   197                                      lower:
+   198 000000B1 48FFC3                      inc rbx
+   199 000000B4 4883FB05                    cmp rbx, NUM_POINTS
+   200 000000B8 72D0                        jb minAlgo
+   201                                      
+   202                                  ; Une fois cette étape fini, nous connaissons le point le plus à gauche.
+   203                                  ; Marche de Jarvis
+   204                                  ; rax = Prochain point (P)
+   205                                  ; rbx = Index actuel de enveloppe (Pas d'équivalent, à ne pas utiliser pr l'instant)
+   206                                  ; rcx = Prochain candidat de P (Q)
+   207 000000BA 4831C0                  xor rax, rax
+   208 000000BD 668B0425[39000000]      mov ax, word[minpoint]
+   209 000000C5 66890425[3B000000]      mov word[P], ax
+   210 000000CD 66C70425[36000000]-     mov word[sizeEnveloppe], 0
+   210 000000D5 0000               
+   211                                  jarvis:
+   212 000000D7 668B0425[3B000000]          mov ax, word[P]
+   213 000000DF 4831DB                      xor rbx, rbx
+   214 000000E2 480FB71C25-                 movzx rbx, word[sizeEnveloppe]
+   214 000000E7 [36000000]         
+   215 000000EB 6689841B[2C000000]          mov word[enveloppe+rbx*2], ax
    216                                      
-   217                                      nofix:
-   218 0000019A 66C70425[25010000]-         mov word[I], 0
-   218 000001A2 0000               
-   219                                      parcoursListe:
-   220                                          ; Coord de P dans di et si
-   221 000001A4 480FB70425-                     movzx rax, word[P]
-   221 000001A9 [21010000]         
-   222 000001AD 668BBC00[2C000000]              mov di, word[coordx+rax*2]
-   223 000001B5 668BB400[7C000000]              mov si, word[coordy+rax*2]
-   224                                          
-   225                                          ; Coord de I dans dx et cx
-   226 000001BD 480FB70425-                     movzx rax, word[I]
-   226 000001C2 [25010000]         
-   227 000001C6 668B9400[2C000000]              mov dx, word[coordx+rax*2]
-   228 000001CE 668B8C00[7C000000]              mov cx, word[coordy+rax*2]
-   229                                          
-   230                                          ; Coord de Q dans r8w et r9w
-   231 000001D6 480FB70425-                     movzx rax, word[Q]
-   231 000001DB [23010000]         
-   232 000001DF 66448B8400-                     mov r8w, word[coordx+rax*2]
-   232 000001E4 [2C000000]         
-   233 000001E8 66448B8C00-                     mov r9w, word[coordy+rax*2]
-   233 000001ED [7C000000]         
-   234 000001F1 B800000000                      mov rax, 0
-   235 000001F6 E805FEFFFF                      call orientation
-   236                                          
-   237 000001FB 83F800                          cmp eax, 0
-   238 000001FE 7E11                            jle nocandid
+   217 000000F3 66890425[3D000000]          mov word[Q], ax
+   218 000000FB 66FF0425[3D000000]          inc word[Q]
+   219 00000103 66833C25[3D000000]-         cmp word[Q], NUM_POINTS
+   219 0000010B 05                 
+   220 0000010C 7209                        jb nofix
+   221                                      
+   222 0000010E 66832C25[3D000000]-         sub word[Q], NUM_POINTS
+   222 00000116 05                 
+   223                                      
+   224                                      nofix:
+   225 00000117 66C70425[3F000000]-         mov word[I], 0
+   225 0000011F 0000               
+   226                                      parcoursListe:
+   227 00000121 668B1C25[3B000000]              mov bx, word[P]
+   228 00000129 66391C25[3F000000]              cmp word[I], bx
+   229 00000131 746D                            je nocandid
+   230                                          ; Coord de P dans di et si
+   231 00000133 480FB70425-                     movzx rax, word[P]
+   231 00000138 [3B000000]         
+   232 0000013C 668BBC00[63010000]              mov di, word[coordx+rax*2]
+   233 00000144 668BB400[6D010000]              mov si, word[coordy+rax*2]
+   234                                          
+   235                                          ; Coord de I dans dx et cx
+   236 0000014C 480FB70425-                     movzx rax, word[I]
+   236 00000151 [3F000000]         
+   237 00000155 668B9400[63010000]              mov dx, word[coordx+rax*2]
+   238 0000015D 668B8C00[6D010000]              mov cx, word[coordy+rax*2]
    239                                          
-   240 00000200 480FB71C25-                     movzx rbx, word[I]
-   240 00000205 [25010000]         
-   241 00000209 66891C25[23010000]              mov word[Q], bx
-   242                                          
-   243                                          nocandid:
-   244                                          
-   245 00000211 66FF0425[25010000]              inc word[I]
-   246 00000219 66833C25[25010000]-             cmp word[I], NUM_POINTS
-   246 00000221 28                 
-   247 00000222 7280                            jb parcoursListe    
-   248 00000224 668B1C25[23010000]          mov bx, word[Q]
-   249 0000022C 66891C25[21010000]          mov word[P], bx
-   250 00000234 66FF0425[1C010000]          inc word[sizeEnveloppe]
-   251                                  
-   252 0000023C 668B1C25[1F010000]          mov bx, word[minpoint]
-   253 00000244 66391C25[21010000]          cmp word[P], bx
-   254 0000024C 0F8508FFFFFF                jne jarvis
-   255                                  
-   256                                  
-   257 00000252 BB00000000              mov rbx, 0
-   258                                  printenv:
-   259 00000257 48BF-                       mov rdi, env
-   259 00000259 [3C01000000000000] 
-   260 00000261 480FB7B41B-                 movzx rsi, word[enveloppe+rbx*2]
-   260 00000266 [CC000000]         
-   261 0000026A B800000000                  mov rax, 0
-   262 0000026F E8(00000000)                call printf
-   263                                  
-   264 00000274 48FFC3                      inc rbx
-   265 00000277 663B1C25[1C010000]          cmp bx, word[sizeEnveloppe]
-   266 0000027F 72D6                        jb printenv    
-   267                                      
-   268                                  ;fenetre dessin   
-   269 00000281 4831FF                  xor     rdi,rdi
-   270 00000284 E8(00000000)            call    XOpenDisplay	; Création de display
-   271 00000289 48890425[00000000]      mov     qword[display_name],rax	; rax=nom du display
-   272                                  
-   273                                  ; display_name structure
-   274                                  ; screen = DefaultScreen(display_name);
-   275 00000291 488B0425[00000000]      mov     rax,qword[display_name]
-   276 00000299 8B80E0000000            mov     eax,dword[rax+0xe0]
-   277 0000029F 890425[08000000]        mov     dword[screen],eax
-   278                                  
-   279 000002A6 488B3C25[00000000]      mov rdi,qword[display_name]
-   280 000002AE 8B3425[08000000]        mov esi,dword[screen]
-   281 000002B5 E8(00000000)            call XRootWindow
-   282 000002BA 4889C3                  mov rbx,rax
-   283                                  
-   284 000002BD 488B3C25[00000000]      mov rdi,qword[display_name]
-   285 000002C5 4889DE                  mov rsi,rbx
-   286 000002C8 BA0A000000              mov rdx,10
-   287 000002CD B90A000000              mov rcx,10
-   288 000002D2 41B890010000            mov r8,400	; largeur
-   289 000002D8 41B990010000            mov r9,400	; hauteur
-   290 000002DE 68FFFFFF00              push 0xFFFFFF	; background  0xRRGGBB
-   291 000002E3 6800FF0000              push 0x00FF00
-   292 000002E8 6A01                    push 1
-   293 000002EA E8(00000000)            call XCreateSimpleWindow
-   294 000002EF 48890425[1C000000]      mov qword[window],rax
-   295                                  
-   296 000002F7 488B3C25[00000000]      mov rdi,qword[display_name]
-   297 000002FF 488B3425[1C000000]      mov rsi,qword[window]
-   298 00000307 BA05000200              mov rdx,131077 ;131072
-   299 0000030C E8(00000000)            call XSelectInput
-   300                                  
-   301 00000311 488B3C25[00000000]      mov rdi,qword[display_name]
-   302 00000319 488B3425[1C000000]      mov rsi,qword[window]
-   303 00000321 E8(00000000)            call XMapWindow
-   304                                  
-   305 00000326 488B3425[1C000000]      mov rsi,qword[window]
-   306 0000032E BA00000000              mov rdx,0
-   307 00000333 B900000000              mov rcx,0
-   308 00000338 E8(00000000)            call XCreateGC
-   309 0000033D 48890425[24000000]      mov qword[gc],rax
-   310                                  
-   311 00000345 488B3C25[00000000]      mov rdi,qword[display_name]
-   312 0000034D 488B3425[24000000]      mov rsi,qword[gc]
-   313 00000355 BA00000000              mov rdx,0x000000	; Couleur du crayon
-   314 0000035A E8(00000000)            call XSetForeground
-   315                                  
-   316                                  boucle: ; boucle de gestion des évènements
-   317 0000035F 488B3C25[00000000]      mov rdi,qword[display_name]
-   318 00000367 48BE-                   mov rsi,event
-   318 00000369 [0000000000000000] 
-   319 00000371 E8(00000000)            call XNextEvent
-   320                                  
-   321 00000376 833C25[00000000]16      cmp dword[event],ConfigureNotify	; à l'apparition de la fenêtre
-   322 0000037E 7410                    je dessin			; on saute au label 'dessin'
-   323                                  
-   324 00000380 833C25[00000000]02      cmp dword[event],KeyPress        ; Si on appuie sur une touche
-   325 00000388 0F8479030000            je closeDisplay		        ; on saute au label 'closeDisplay' qui ferme la fenêtre
-   326 0000038E EBCF                    jmp boucle
-   327                                      
-   328                                  ;#########################################
-   329                                  ;#        DEBUT DE LA ZONE DE DESSIN     #
-   330                                  ;#########################################
-   331                                  dessin:
-   332                                  
-   333                                      ; boucle dessin point
-   334                                      
-   335 00000390 BB00000000                  mov rbx, 0  
-   336                                      draw_point_loop:
+   240                                          ; Coord de Q dans r8w et r9w
+   241 00000165 480FB70425-                     movzx rax, word[Q]
+   241 0000016A [3D000000]         
+   242 0000016E 66448B8400-                     mov r8w, word[coordx+rax*2]
+   242 00000173 [63010000]         
+   243 00000177 66448B8C00-                     mov r9w, word[coordy+rax*2]
+   243 0000017C [6D010000]         
+   244 00000180 B800000000                      mov rax, 0
+   245 00000185 E876FEFFFF                      call orientation
+   246                                          
+   247 0000018A 83F800                          cmp eax, 0
+   248 0000018D 7E11                            jle nocandid
+   249                                          
+   250 0000018F 480FB71C25-                     movzx rbx, word[I]
+   250 00000194 [3F000000]         
+   251 00000198 66891C25[3D000000]              mov word[Q], bx
+   252                                          
+   253                                          nocandid:
+   254                                          
+   255 000001A0 66FF0425[3F000000]              inc word[I]
+   256 000001A8 66833C25[3F000000]-             cmp word[I], NUM_POINTS
+   256 000001B0 05                 
+   257 000001B1 0F826AFFFFFF                    jb parcoursListe    
+   258 000001B7 668B1C25[3D000000]          mov bx, word[Q]
+   259 000001BF 66891C25[3B000000]          mov word[P], bx
+   260 000001C7 66FF0425[36000000]          inc word[sizeEnveloppe]
+   261                                  
+   262 000001CF 668B1C25[39000000]          mov bx, word[minpoint]
+   263 000001D7 66391C25[3B000000]          cmp word[P], bx
+   264 000001DF 0F85F2FEFFFF                jne jarvis
+   265                                  
+   266                                  
+   267 000001E5 BB00000000              mov rbx, 0
+   268                                  printenv:
+   269 000001EA 48BF-                       mov rdi, env
+   269 000001EC [3C01000000000000] 
+   270 000001F4 480FB7B41B-                 movzx rsi, word[enveloppe+rbx*2]
+   270 000001F9 [2C000000]         
+   271 000001FD B800000000                  mov rax, 0
+   272 00000202 E8(00000000)                call printf
+   273                                  
+   274 00000207 48FFC3                      inc rbx
+   275 0000020A 663B1C25[36000000]          cmp bx, word[sizeEnveloppe]
+   276 00000212 72D6                        jb printenv  
+   277                                      
+   278 00000214 660FC7F0                rdrand ax
+   279 00000218 66C70425[41000000]-     mov word[lastPointX], 50; ax
+   279 00000220 3200               
+   280                                  lastmodx:
+   281                                  ;    sub word[lastPointX], MAX_X
+   282                                  ;    cmp word[lastPointX], MAX_X
+   283                                  ;    jae lastmodx
+   284                                      
+   285 00000222 660FC7F0                rdrand ax
+   286 00000226 66C70425[43000000]-     mov word[lastPointY], 75; ax
+   286 0000022E 4B00               
+   287                                  lastmody:
+   288                                  ;    sub word[lastPointY], MAX_Y
+   289                                  ;    cmp word[lastPointY], MAX_Y
+   290                                  ;    jae lastmody
+   291                                      
+   292 00000230 66C70425[46000000]-     mov word[checkIndex], 0
+   292 00000238 0000               
+   293 0000023A 66C70425[45000000]-     mov word[isInside], 1
+   293 00000242 0100               
+   294                                  checkInside:
+   295 00000244 480FB70425-                 movzx rax, word[checkIndex]
+   295 00000249 [46000000]         
+   296 0000024D 668B9C00[2C000000]          mov bx, word[enveloppe+rax*2]
+   297 00000255 66891C25[3B000000]          mov word[P], bx
+   298 0000025D 66FFC3                      inc bx
+   299 00000260 66391C25[36000000]          cmp word[sizeEnveloppe], bx
+   300 00000268 7512                        jne nolooped
+   301                                      
+   302 0000026A 668B1C25[2C000000]          mov bx, word[enveloppe]
+   303 00000272 66891C25[3F000000]          mov word[I], bx
+   304 0000027A EB10                        jmp endlooped
+   305                                      
+   306                                      nolooped:
+   307 0000027C 668B9C00[2E000000]          mov bx, word[enveloppe+(rax+1)*2]
+   308 00000284 66891C25[3F000000]          mov word[I], bx
+   309                                      
+   310                                      endlooped:
+   311                                      ; Coord de P dans di et si
+   312 0000028C 480FB70425-                 movzx rax, word[P]
+   312 00000291 [3B000000]         
+   313 00000295 668BBC00[63010000]          mov di, word[coordx+rax*2]
+   314 0000029D 668BB400[6D010000]          mov si, word[coordy+rax*2]
+   315                                      
+   316                                      ; Coord de I dans dx et cx
+   317 000002A5 480FB70425-                 movzx rax, word[I]
+   317 000002AA [3F000000]         
+   318 000002AE 668B9400[63010000]          mov dx, word[coordx+rax*2]
+   319 000002B6 668B8C00[6D010000]          mov cx, word[coordy+rax*2]
+   320                                      
+   321                                      ; Coord de lastPoint dans r8w et r9w
+   322 000002BE 66448B0425-                 mov r8w, word[lastPointX]
+   322 000002C3 [41000000]         
+   323 000002C7 66448B0C25-                 mov r9w, word[lastPointY]
+   323 000002CC [43000000]         
+   324 000002D0 B800000000                  mov rax, 0
+   325 000002D5 E826FDFFFF                  call orientation
+   326                                      
+   327 000002DA 83F800                      cmp eax, 0
+   328 000002DD 7508                        jne nextCheck
+   329                                      
+   330 000002DF C60425[45000000]00          mov byte[isInside], 0
+   331                                      
+   332                                      nextCheck:
+   333 000002E7 66FF0425[46000000]          inc word[checkIndex]
+   334 000002EF 480FB70425-                 movzx rax, word[sizeEnveloppe]
+   334 000002F4 [36000000]         
+   335 000002F8 66390425[46000000]          cmp word[checkIndex], ax
+   336 00000300 0F823EFFFFFF                jb checkInside
    337                                  
-   338                                          ;couleur du point 1
-   339 00000395 488B3C25[00000000]              mov rdi,qword[display_name]
-   340 0000039D 488B3425[24000000]              mov rsi,qword[gc]
-   341 000003A5 BA00000000                      mov edx,0x000000	; Couleur noire
-   342 000003AA E8(00000000)                    call XSetForeground
-   343                                          
-   344                                          ; Dessin d'un point du point
-   345 000003AF 488B3C25[00000000]              mov rdi,qword[display_name]
-   346 000003B7 488B3425[1C000000]              mov rsi,qword[window]
-   347 000003BF 488B1425[24000000]              mov rdx,qword[gc]	
-   348 000003C7 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; coordonnée en x du point généré
-   348 000003CC [2C000000]         
-   349 000003D0 83E903                          sub ecx,3		
-   350 000003D3 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; coordonnée en y du point généré
-   350 000003D8 [7C000000]         
-   351 000003DC 4983E803                        sub r8,3
-   352 000003E0 41B906000000                    mov r9,6
-   353 000003E6 B8005A0000                      mov rax,23040
-   354 000003EB 50                              push rax
-   355 000003EC 6A00                            push 0
-   356 000003EE 4151                            push r9
-   357 000003F0 E8(00000000)                    call XFillArc
+   338 00000306 48BF-                   mov rdi, printx
+   338 00000308 [EF00000000000000] 
+   339 00000310 480FB73425-             movzx rsi, word[lastPointX]
+   339 00000315 [41000000]         
+   340 00000319 B800000000              mov rax, 0
+   341 0000031E E8(00000000)            call printf
+   342                                  
+   343 00000323 48BF-                   mov rdi, printy
+   343 00000325 [F700000000000000] 
+   344 0000032D 480FB73425-             movzx rsi, word[lastPointY]
+   344 00000332 [43000000]         
+   345 00000336 B800000000              mov rax, 0
+   346 0000033B E8(00000000)            call printf
+   347                                  
+   348 00000340 48BF-                   mov rdi, resultat
+   348 00000342 [5501000000000000] 
+   349 0000034A 480FB63425-             movzx rsi, byte[isInside]
+   349 0000034F [45000000]         
+   350 00000353 B800000000              mov rax, 0
+   351 00000358 E8(00000000)            call printf
+   352                                          
+   353                                          
+   354                                  ;fenetre dessin   
+   355 0000035D 4831FF                  xor     rdi,rdi
+   356 00000360 E8(00000000)            call    XOpenDisplay	; Création de display
+   357 00000365 48890425[00000000]      mov     qword[display_name],rax	; rax=nom du display
    358                                  
-   359                                          ;++loopcounter
-   360 000003F5 48FFC3                          inc rbx
-   361                                          
-   362                                          ;check if end loop
-   363 000003F8 4883FB28                        cmp rbx, NUM_POINTS
-   364 000003FC 7297                            jb draw_point_loop
-   365                                          
-   366                                          
-   367 000003FE 48BF-                           mov rdi, printy
-   367 00000400 [F700000000000000] 
-   368 00000408 480FB73425-                     movzx rsi, word[sizeEnveloppe]
-   368 0000040D [1C010000]         
-   369 00000411 B800000000                      mov rax, 0
-   370 00000416 E8(00000000)                    call printf
-   371                                      
-   372                                      
-   373                                      ; boucle dessin ligne
-   374                                      
-   375 0000041B BB00000000                  mov rbx, 0 
-   376 00000420 B800000000                  mov rax, 0
-   377                                  
-   378                                      draw_line_loop:
-   379                                  
-   380                                          ;couleur de la ligne 1
-   381 00000425 488B3C25[00000000]              mov rdi,qword[display_name]
-   382 0000042D 488B3425[24000000]              mov rsi,qword[gc]
-   383 00000435 BA00000000                      mov edx,0x000000	; Couleur du crayon ; noir
-   384 0000043A E8(00000000)                    call XSetForeground
-   385                                          
-   386                                          ;###debug
-   387 0000043F 56                              push rsi
-   388                                          
-   389 00000440 48BF-                           mov rdi, printy
-   389 00000442 [F700000000000000] 
-   390 0000044A 4889DE                          mov rsi, rbx
-   391 0000044D B800000000                      mov rax, 0
-   392 00000452 E8(00000000)                    call printf
-   393                                          
-   394 00000457 480FB78C1B-                     movzx rcx, word[enveloppe+rbx*2]
-   394 0000045C [CC000000]         
-   395 00000460 48BF-                           mov rdi, env
-   395 00000462 [3C01000000000000] 
-   396 0000046A 4889CE                          mov rsi, rcx
-   397 0000046D B800000000                      mov rax, 0
-   398 00000472 E8(00000000)                    call printf
-   399                                          
-   400 00000477 5E                              pop rsi
-   401                                          ;;;;;;
-   402                                          
-   403                                          ;coordonnées de la ligne 1 (noire)
-   404                                          
-   405                                          ;Premier point
-   406 00000478 480FB78C1B-                     movzx rcx, word[enveloppe+rbx*2]
-   406 0000047D [CC000000]         
-   407                                          
-   408                                          ;x
-   409 00000481 0FB78409[2C000000]              movzx eax, word [coordx+rcx*2]
-   410 00000489 890425[C0000000]                mov dword[x1],eax
-   411 00000490 B800000000                      mov eax, 0
-   412                                  
-   413                                          ;y
-   414 00000495 0FB78409[7C000000]              movzx eax, word [coordy+rcx*2]
-   415 0000049D 890425[C8000000]                mov dword[y1],eax
-   416 000004A4 B800000000                      mov eax, 0
-   417                                          
-   418                                          ;Second point
-   419 000004A9 48FFC3                          inc rbx
-   420                                          
-   421                                          ;if rcx = sizeEnveloppe, go back to 1rst point
-   422 000004AC B900000000                      mov rcx, 0
-   423 000004B1 480FB70C25-                     movzx rcx, word[sizeEnveloppe]  
-   423 000004B6 [1C010000]         
-   424 000004BA 4839CB                          cmp rbx , rcx
-   425 000004BD 0F8483000000                    je set_draw_last_point
-   426                                          
-   427 000004C3 480FB78C1B-                     movzx rcx, word[enveloppe+rbx*2]
-   427 000004C8 [CC000000]         
-   428                                          
-   429 000004CC 0FB78409[2C000000]              movzx eax, word [coordx+rcx*2]
-   430 000004D4 890425[C4000000]                mov dword[x2], eax
-   431 000004DB B800000000                      mov eax, 0
-   432                                          
-   433 000004E0 0FB78409[7C000000]              movzx eax, word [coordy+rcx*2]
-   434 000004E8 890425[CC000000]                mov dword[y2], eax
-   435 000004EF B800000000                      mov eax, 0
-   436                                          
-   437                                          ; dessin de la ligne 1
-   438 000004F4 488B3C25[00000000]              mov rdi,qword[display_name]
-   439 000004FC 488B3425[1C000000]              mov rsi,qword[window]
-   440 00000504 488B1425[24000000]              mov rdx,qword[gc]
-   441 0000050C 8B0C25[C0000000]                mov ecx,dword[x1]	; coordonnée source en x
-   442 00000513 448B0425[C8000000]              mov r8d,dword[y1]	; coordonnée source en y
-   443 0000051B 448B0C25[C4000000]              mov r9d,dword[x2]	; coordonnée destination en x
-   444 00000523 FF3425[CC000000]                push qword[y2]		; coordonnée destination en y
-   445 0000052A E8(00000000)                    call XDrawLine
-   446                                          
-   447                                          ;check if end loop
-   448 0000052F B900000000                      mov rcx, 0
-   449 00000534 480FB70C25-                     movzx rcx, word[sizeEnveloppe]
-   449 00000539 [1C010000]         
-   450 0000053D 4839CB                          cmp rbx , rcx
-   451 00000540 0F82DFFEFFFF                    jb draw_line_loop
+   359                                  ; display_name structure
+   360                                  ; screen = DefaultScreen(display_name);
+   361 0000036D 488B0425[00000000]      mov     rax,qword[display_name]
+   362 00000375 8B80E0000000            mov     eax,dword[rax+0xe0]
+   363 0000037B 890425[08000000]        mov     dword[screen],eax
+   364                                  
+   365 00000382 488B3C25[00000000]      mov rdi,qword[display_name]
+   366 0000038A 8B3425[08000000]        mov esi,dword[screen]
+   367 00000391 E8(00000000)            call XRootWindow
+   368 00000396 4889C3                  mov rbx,rax
+   369                                  
+   370 00000399 488B3C25[00000000]      mov rdi,qword[display_name]
+   371 000003A1 4889DE                  mov rsi,rbx
+   372 000003A4 BA0A000000              mov rdx,10
+   373 000003A9 B90A000000              mov rcx,10
+   374 000003AE 41B890010000            mov r8,400	; largeur
+   375 000003B4 41B990010000            mov r9,400	; hauteur
+   376 000003BA 68FFFFFF00              push 0xFFFFFF	; background  0xRRGGBB
+   377 000003BF 6800FF0000              push 0x00FF00
+   378 000003C4 6A01                    push 1
+   379 000003C6 E8(00000000)            call XCreateSimpleWindow
+   380 000003CB 48890425[1C000000]      mov qword[window],rax
+   381                                  
+   382 000003D3 488B3C25[00000000]      mov rdi,qword[display_name]
+   383 000003DB 488B3425[1C000000]      mov rsi,qword[window]
+   384 000003E3 BA05000200              mov rdx,131077 ;131072
+   385 000003E8 E8(00000000)            call XSelectInput
+   386                                  
+   387 000003ED 488B3C25[00000000]      mov rdi,qword[display_name]
+   388 000003F5 488B3425[1C000000]      mov rsi,qword[window]
+   389 000003FD E8(00000000)            call XMapWindow
+   390                                  
+   391 00000402 488B3425[1C000000]      mov rsi,qword[window]
+   392 0000040A BA00000000              mov rdx,0
+   393 0000040F B900000000              mov rcx,0
+   394 00000414 E8(00000000)            call XCreateGC
+   395 00000419 48890425[24000000]      mov qword[gc],rax
+   396                                  
+   397 00000421 488B3C25[00000000]      mov rdi,qword[display_name]
+   398 00000429 488B3425[24000000]      mov rsi,qword[gc]
+   399 00000431 BA00000000              mov rdx,0x000000	; Couleur du crayon
+   400 00000436 E8(00000000)            call XSetForeground
+   401                                  
+   402                                  boucle: ; boucle de gestion des évènements
+   403 0000043B 488B3C25[00000000]      mov rdi,qword[display_name]
+   404 00000443 48BE-                   mov rsi,event
+   404 00000445 [0000000000000000] 
+   405 0000044D E8(00000000)            call XNextEvent
+   406                                  
+   407 00000452 833C25[00000000]16      cmp dword[event],ConfigureNotify	; à l'apparition de la fenêtre
+   408 0000045A 7410                    je dessin			; on saute au label 'dessin'
+   409                                  
+   410 0000045C 833C25[00000000]02      cmp dword[event],KeyPress        ; Si on appuie sur une touche
+   411 00000464 0F8479030000            je closeDisplay		        ; on saute au label 'closeDisplay' qui ferme la fenêtre
+   412 0000046A EBCF                    jmp boucle
+   413                                      
+   414                                  ;#########################################
+   415                                  ;#        DEBUT DE LA ZONE DE DESSIN     #
+   416                                  ;#########################################
+   417                                  dessin:
+   418                                  
+   419                                      ; boucle dessin point
+   420                                      
+   421 0000046C BB00000000                  mov rbx, 0  
+   422                                      draw_point_loop:
+   423                                  
+   424                                          ;couleur du point 1
+   425 00000471 488B3C25[00000000]              mov rdi,qword[display_name]
+   426 00000479 488B3425[24000000]              mov rsi,qword[gc]
+   427 00000481 BA00000000                      mov edx,0x000000	; Couleur noire
+   428 00000486 E8(00000000)                    call XSetForeground
+   429                                          
+   430                                          ; Dessin d'un point du point
+   431 0000048B 488B3C25[00000000]              mov rdi,qword[display_name]
+   432 00000493 488B3425[1C000000]              mov rsi,qword[window]
+   433 0000049B 488B1425[24000000]              mov rdx,qword[gc]	
+   434 000004A3 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; coordonnée en x du point généré
+   434 000004A8 [63010000]         
+   435 000004AC 83E903                          sub ecx,3		
+   436 000004AF 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; coordonnée en y du point généré
+   436 000004B4 [6D010000]         
+   437 000004B8 4983E803                        sub r8,3
+   438 000004BC 41B906000000                    mov r9,6
+   439 000004C2 B8005A0000                      mov rax,23040
+   440 000004C7 50                              push rax
+   441 000004C8 6A00                            push 0
+   442 000004CA 4151                            push r9
+   443 000004CC E8(00000000)                    call XFillArc
+   444                                  
+   445                                          ;++loopcounter
+   446 000004D1 48FFC3                          inc rbx
+   447                                          
+   448                                          ;check if end loop
+   449 000004D4 4883FB05                        cmp rbx, NUM_POINTS
+   450 000004D8 7297                            jb draw_point_loop
+   451                                          
    452                                          
-   453                                          set_draw_last_point:    
-   454 00000546 BB00000000                          mov rbx, 0
-   455 0000054B 480FB78C1B-                         movzx rcx, word[enveloppe+rbx*2]
-   455 00000550 [CC000000]         
-   456                                              
-   457 00000554 0FB78409[2C000000]                  movzx eax, word [coordx+rcx*2]
-   458 0000055C 890425[C4000000]                    mov dword[x2], eax
-   459 00000563 B800000000                          mov eax, 0
-   460                                              
-   461 00000568 0FB78409[7C000000]                  movzx eax, word [coordy+rcx*2]
-   462 00000570 890425[CC000000]                    mov dword[y2], eax
-   463 00000577 B800000000                          mov eax, 0
-   464                                              
-   465                                              ; dessin de la ligne 1
-   466 0000057C 488B3C25[00000000]                  mov rdi,qword[display_name]
-   467 00000584 488B3425[1C000000]                  mov rsi,qword[window]
-   468 0000058C 488B1425[24000000]                  mov rdx,qword[gc]
-   469 00000594 8B0C25[C0000000]                    mov ecx,dword[x1]	; coordonnée source en x
-   470 0000059B 448B0425[C8000000]                  mov r8d,dword[y1]	; coordonnée source en y
-   471 000005A3 448B0C25[C4000000]                  mov r9d,dword[x2]	; coordonnée destination en x
-   472 000005AB FF3425[CC000000]                    push qword[y2]	; coordonnée destination en y
-   473 000005B2 E8(00000000)                        call XDrawLine
-   474                                              ;jmp flush
-   475                                          
-   476                                  color_point_left:
-   477                                          ;mov rbx, (le point en question)
-   478 000005B7 480FB71C25-                     movzx rbx, word[minpoint]
-   478 000005BC [1F010000]         
-   479                                          ;couleur du point 1
-   480 000005C0 488B3C25[00000000]              mov rdi,qword[display_name]
-   481 000005C8 488B3425[24000000]              mov rsi,qword[gc]
-   482 000005D0 BAFF000000                      mov edx,0x0000FF	; Couleur bleu
-   483 000005D5 E8(00000000)                    call XSetForeground
-   484                                          
-   485                                          ; Dessin du point
-   486 000005DA 488B3C25[00000000]              mov rdi,qword[display_name]
-   487 000005E2 488B3425[1C000000]              mov rsi,qword[window]
-   488 000005EA 488B1425[24000000]              mov rdx,qword[gc]	
-   489 000005F2 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; x
-   489 000005F7 [2C000000]         
-   490 000005FB 83E903                          sub ecx,3		
-   491 000005FE 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; y
-   491 00000603 [7C000000]         
-   492 00000607 4983E803                        sub r8,3
-   493 0000060B 41B906000000                    mov r9,6
-   494 00000611 B8005A0000                      mov rax,23040
-   495 00000616 50                              push rax
-   496 00000617 6A00                            push 0
-   497 00000619 4151                            push r9
-   498 0000061B E8(00000000)                    call XFillArc
-   499                                          ;jmp flush    
-   500                                          
-   501                                  color_point_in:
-   502                                          ;mov rbx, (le point en question)
-   503 00000620 BB02000000                      mov rbx, 2
-   504                                          ;couleur du point 1
-   505 00000625 488B3C25[00000000]              mov rdi,qword[display_name]
-   506 0000062D 488B3425[24000000]              mov rsi,qword[gc]
-   507 00000635 BA00FF0000                      mov edx,0x00FF00	; Couleur vert
-   508 0000063A E8(00000000)                    call XSetForeground
-   509                                          
-   510                                          ; Dessin du point
-   511 0000063F 488B3C25[00000000]              mov rdi,qword[display_name]
-   512 00000647 488B3425[1C000000]              mov rsi,qword[window]
-   513 0000064F 488B1425[24000000]              mov rdx,qword[gc]	
-   514 00000657 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; x
-   514 0000065C [2C000000]         
-   515 00000660 83E903                          sub ecx,3		
-   516 00000663 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; y
-   516 00000668 [7C000000]         
-   517 0000066C 4983E803                        sub r8,3
-   518 00000670 41B906000000                    mov r9,6
-   519 00000676 B8005A0000                      mov rax,23040
-   520 0000067B 50                              push rax
-   521 0000067C 6A00                            push 0
-   522 0000067E 4151                            push r9
-   523 00000680 E8(00000000)                    call XFillArc
-   524                                          ;jmp flush
-   525                                          
-   526                                  color_point_out:
-   527                                          ;mov rbx, (le point en question)
-   528 00000685 BB01000000                      mov rbx, 1
-   529                                          ;couleur du point 1
-   530 0000068A 488B3C25[00000000]              mov rdi,qword[display_name]
-   531 00000692 488B3425[24000000]              mov rsi,qword[gc]
-   532 0000069A BA0000FF00                      mov edx,0xFF0000	; Couleur rouge
-   533 0000069F E8(00000000)                    call XSetForeground
-   534                                          
-   535                                          ; Dessin du point
-   536 000006A4 488B3C25[00000000]              mov rdi,qword[display_name]
-   537 000006AC 488B3425[1C000000]              mov rsi,qword[window]
-   538 000006B4 488B1425[24000000]              mov rdx,qword[gc]	
-   539 000006BC 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; x
-   539 000006C1 [2C000000]         
-   540 000006C5 83E903                          sub ecx,3		
-   541 000006C8 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; y
-   541 000006CD [7C000000]         
-   542 000006D1 4983E803                        sub r8,3
-   543 000006D5 41B906000000                    mov r9,6
-   544 000006DB B8005A0000                      mov rax,23040
-   545 000006E0 50                              push rax
-   546 000006E1 6A00                            push 0
-   547 000006E3 4151                            push r9
-   548 000006E5 E8(00000000)                    call XFillArc
-   549 000006EA EB02                            jmp flush
-   550                                  ; ############################
-   551                                  ; # FIN DE LA ZONE DE DESSIN #
-   552                                  ; ############################
-   553 000006EC EB00                    jmp flush
-   554                                  
-   555                                  flush:
-   556 000006EE 488B3C25[00000000]          mov rdi,qword[display_name]
-   557 000006F6 E8(00000000)                call XFlush
-   558 000006FB E95FFCFFFF                  jmp boucle
-   559 00000700 B822000000                  mov rax,34
-   560 00000705 0F05                        syscall
-   561                                  
-   562                                  closeDisplay:
-   563 00000707 488B0425[00000000]          mov     rax,qword[display_name]
-   564 0000070F 4889CF                      mov     rdi,rcx
-   565 00000712 E8(00000000)                call    XCloseDisplay
-   566 00000717 4831FF                      xor	    rdi,rdi
-   567 0000071A E8(00000000)                call    exit	
-   568                                  
-   569                                  ; Pour fermer le programme proprement :
-   570 0000071F B83C000000              mov    rax, 60         
-   571 00000724 BF00000000              mov    rdi, 0
-   572 00000729 0F05                    syscall
-   573                                  
-   574 0000072B C3                      ret
+   453 000004DA 48BF-                           mov rdi, printy
+   453 000004DC [F700000000000000] 
+   454 000004E4 480FB73425-                     movzx rsi, word[sizeEnveloppe]
+   454 000004E9 [36000000]         
+   455 000004ED B800000000                      mov rax, 0
+   456 000004F2 E8(00000000)                    call printf
+   457                                      
+   458                                      
+   459                                      ; boucle dessin ligne
+   460                                      
+   461 000004F7 BB00000000                  mov rbx, 0 
+   462 000004FC B800000000                  mov rax, 0
+   463                                  
+   464                                      draw_line_loop:
+   465                                  
+   466                                          ;couleur de la ligne 1
+   467 00000501 488B3C25[00000000]              mov rdi,qword[display_name]
+   468 00000509 488B3425[24000000]              mov rsi,qword[gc]
+   469 00000511 BA00000000                      mov edx,0x000000	; Couleur du crayon ; noir
+   470 00000516 E8(00000000)                    call XSetForeground
+   471                                          
+   472                                          ;###debug
+   473 0000051B 56                              push rsi
+   474                                          
+   475 0000051C 48BF-                           mov rdi, printy
+   475 0000051E [F700000000000000] 
+   476 00000526 4889DE                          mov rsi, rbx
+   477 00000529 B800000000                      mov rax, 0
+   478 0000052E E8(00000000)                    call printf
+   479                                          
+   480 00000533 480FB78C1B-                     movzx rcx, word[enveloppe+rbx*2]
+   480 00000538 [2C000000]         
+   481 0000053C 48BF-                           mov rdi, env
+   481 0000053E [3C01000000000000] 
+   482 00000546 4889CE                          mov rsi, rcx
+   483 00000549 B800000000                      mov rax, 0
+   484 0000054E E8(00000000)                    call printf
+   485                                          
+   486 00000553 5E                              pop rsi
+   487                                          ;;;;;;
+   488                                          
+   489                                          ;coordonnées de la ligne 1 (noire)
+   490                                          
+   491                                          ;Premier point
+   492 00000554 480FB78C1B-                     movzx rcx, word[enveloppe+rbx*2]
+   492 00000559 [2C000000]         
+   493                                          
+   494                                          ;x
+   495 0000055D 0FB78409[63010000]              movzx eax, word [coordx+rcx*2]
+   496 00000565 890425[C0000000]                mov dword[x1],eax
+   497 0000056C B800000000                      mov eax, 0
+   498                                  
+   499                                          ;y
+   500 00000571 0FB78409[6D010000]              movzx eax, word [coordy+rcx*2]
+   501 00000579 890425[C8000000]                mov dword[y1],eax
+   502 00000580 B800000000                      mov eax, 0
+   503                                          
+   504                                          ;Second point
+   505 00000585 48FFC3                          inc rbx
+   506                                          
+   507                                          ;if rcx = sizeEnveloppe, go back to 1rst point
+   508 00000588 B900000000                      mov rcx, 0
+   509 0000058D 480FB70C25-                     movzx rcx, word[sizeEnveloppe]  
+   509 00000592 [36000000]         
+   510 00000596 4839CB                          cmp rbx , rcx
+   511 00000599 0F8483000000                    je set_draw_last_point
+   512                                          
+   513 0000059F 480FB78C1B-                     movzx rcx, word[enveloppe+rbx*2]
+   513 000005A4 [2C000000]         
+   514                                          
+   515 000005A8 0FB78409[63010000]              movzx eax, word [coordx+rcx*2]
+   516 000005B0 890425[C4000000]                mov dword[x2], eax
+   517 000005B7 B800000000                      mov eax, 0
+   518                                          
+   519 000005BC 0FB78409[6D010000]              movzx eax, word [coordy+rcx*2]
+   520 000005C4 890425[CC000000]                mov dword[y2], eax
+   521 000005CB B800000000                      mov eax, 0
+   522                                          
+   523                                          ; dessin de la ligne 1
+   524 000005D0 488B3C25[00000000]              mov rdi,qword[display_name]
+   525 000005D8 488B3425[1C000000]              mov rsi,qword[window]
+   526 000005E0 488B1425[24000000]              mov rdx,qword[gc]
+   527 000005E8 8B0C25[C0000000]                mov ecx,dword[x1]	; coordonnée source en x
+   528 000005EF 448B0425[C8000000]              mov r8d,dword[y1]	; coordonnée source en y
+   529 000005F7 448B0C25[C4000000]              mov r9d,dword[x2]	; coordonnée destination en x
+   530 000005FF FF3425[CC000000]                push qword[y2]		; coordonnée destination en y
+   531 00000606 E8(00000000)                    call XDrawLine
+   532                                          
+   533                                          ;check if end loop
+   534 0000060B B900000000                      mov rcx, 0
+   535 00000610 480FB70C25-                     movzx rcx, word[sizeEnveloppe]
+   535 00000615 [36000000]         
+   536 00000619 4839CB                          cmp rbx , rcx
+   537 0000061C 0F82DFFEFFFF                    jb draw_line_loop
+   538                                          
+   539                                          set_draw_last_point:    
+   540 00000622 BB00000000                          mov rbx, 0
+   541 00000627 480FB78C1B-                         movzx rcx, word[enveloppe+rbx*2]
+   541 0000062C [2C000000]         
+   542                                              
+   543 00000630 0FB78409[63010000]                  movzx eax, word [coordx+rcx*2]
+   544 00000638 890425[C4000000]                    mov dword[x2], eax
+   545 0000063F B800000000                          mov eax, 0
+   546                                              
+   547 00000644 0FB78409[6D010000]                  movzx eax, word [coordy+rcx*2]
+   548 0000064C 890425[CC000000]                    mov dword[y2], eax
+   549 00000653 B800000000                          mov eax, 0
+   550                                              
+   551                                              ; dessin de la ligne 1
+   552 00000658 488B3C25[00000000]                  mov rdi,qword[display_name]
+   553 00000660 488B3425[1C000000]                  mov rsi,qword[window]
+   554 00000668 488B1425[24000000]                  mov rdx,qword[gc]
+   555 00000670 8B0C25[C0000000]                    mov ecx,dword[x1]	; coordonnée source en x
+   556 00000677 448B0425[C8000000]                  mov r8d,dword[y1]	; coordonnée source en y
+   557 0000067F 448B0C25[C4000000]                  mov r9d,dword[x2]	; coordonnée destination en x
+   558 00000687 FF3425[CC000000]                    push qword[y2]	; coordonnée destination en y
+   559 0000068E E8(00000000)                        call XDrawLine
+   560                                              ;jmp flush
+   561                                          
+   562                                  color_point_left:
+   563                                          ;mov rbx, (le point en question)
+   564 00000693 480FB71C25-                     movzx rbx, word[minpoint]
+   564 00000698 [39000000]         
+   565                                          ;couleur du point 1
+   566 0000069C 488B3C25[00000000]              mov rdi,qword[display_name]
+   567 000006A4 488B3425[24000000]              mov rsi,qword[gc]
+   568 000006AC BAFF000000                      mov edx,0x0000FF	; Couleur bleu
+   569 000006B1 E8(00000000)                    call XSetForeground
+   570                                          
+   571                                          ; Dessin du point
+   572 000006B6 488B3C25[00000000]              mov rdi,qword[display_name]
+   573 000006BE 488B3425[1C000000]              mov rsi,qword[window]
+   574 000006C6 488B1425[24000000]              mov rdx,qword[gc]	
+   575 000006CE 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; x
+   575 000006D3 [63010000]         
+   576 000006D7 83E903                          sub ecx,3		
+   577 000006DA 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; y
+   577 000006DF [6D010000]         
+   578 000006E3 4983E803                        sub r8,3
+   579 000006E7 41B906000000                    mov r9,6
+   580 000006ED B8005A0000                      mov rax,23040
+   581 000006F2 50                              push rax
+   582 000006F3 6A00                            push 0
+   583 000006F5 4151                            push r9
+   584 000006F7 E8(00000000)                    call XFillArc
+   585                                          ;jmp flush    
+   586                                          
+   587                                  color_point_in:
+   588                                          ;mov rbx, (le point en question)
+   589 000006FC BB02000000                      mov rbx, 2
+   590                                          ;couleur du point 1
+   591 00000701 488B3C25[00000000]              mov rdi,qword[display_name]
+   592 00000709 488B3425[24000000]              mov rsi,qword[gc]
+   593 00000711 BA00FF0000                      mov edx,0x00FF00	; Couleur vert
+   594 00000716 E8(00000000)                    call XSetForeground
+   595                                          
+   596                                          ; Dessin du point
+   597 0000071B 488B3C25[00000000]              mov rdi,qword[display_name]
+   598 00000723 488B3425[1C000000]              mov rsi,qword[window]
+   599 0000072B 488B1425[24000000]              mov rdx,qword[gc]	
+   600 00000733 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; x
+   600 00000738 [63010000]         
+   601 0000073C 83E903                          sub ecx,3		
+   602 0000073F 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; y
+   602 00000744 [6D010000]         
+   603 00000748 4983E803                        sub r8,3
+   604 0000074C 41B906000000                    mov r9,6
+   605 00000752 B8005A0000                      mov rax,23040
+   606 00000757 50                              push rax
+   607 00000758 6A00                            push 0
+   608 0000075A 4151                            push r9
+   609 0000075C E8(00000000)                    call XFillArc
+   610                                          ;jmp flush
+   611                                          
+   612                                  color_point_out:
+   613                                          ;mov rbx, (le point en question)
+   614 00000761 BB01000000                      mov rbx, 1
+   615                                          ;couleur du point 1
+   616 00000766 488B3C25[00000000]              mov rdi,qword[display_name]
+   617 0000076E 488B3425[24000000]              mov rsi,qword[gc]
+   618 00000776 BA0000FF00                      mov edx,0xFF0000	; Couleur rouge
+   619 0000077B E8(00000000)                    call XSetForeground
+   620                                          
+   621                                          ; Dessin du point
+   622 00000780 488B3C25[00000000]              mov rdi,qword[display_name]
+   623 00000788 488B3425[1C000000]              mov rsi,qword[window]
+   624 00000790 488B1425[24000000]              mov rdx,qword[gc]	
+   625 00000798 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; x
+   625 0000079D [63010000]         
+   626 000007A1 83E903                          sub ecx,3		
+   627 000007A4 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; y
+   627 000007A9 [6D010000]         
+   628 000007AD 4983E803                        sub r8,3
+   629 000007B1 41B906000000                    mov r9,6
+   630 000007B7 B8005A0000                      mov rax,23040
+   631 000007BC 50                              push rax
+   632 000007BD 6A00                            push 0
+   633 000007BF 4151                            push r9
+   634 000007C1 E8(00000000)                    call XFillArc
+   635 000007C6 EB02                            jmp flush
+   636                                  ; ############################
+   637                                  ; # FIN DE LA ZONE DE DESSIN #
+   638                                  ; ############################
+   639 000007C8 EB00                    jmp flush
+   640                                  
+   641                                  flush:
+   642 000007CA 488B3C25[00000000]          mov rdi,qword[display_name]
+   643 000007D2 E8(00000000)                call XFlush
+   644 000007D7 E95FFCFFFF                  jmp boucle
+   645 000007DC B822000000                  mov rax,34
+   646 000007E1 0F05                        syscall
+   647                                  
+   648                                  closeDisplay:
+   649 000007E3 488B0425[00000000]          mov     rax,qword[display_name]
+   650 000007EB 4889CF                      mov     rdi,rcx
+   651 000007EE E8(00000000)                call    XCloseDisplay
+   652 000007F3 4831FF                      xor	    rdi,rdi
+   653 000007F6 E8(00000000)                call    exit	
+   654                                  
+   655                                  ; Pour fermer le programme proprement :
+   656 000007FB B83C000000              mov    rax, 60         
+   657 00000800 BF00000000              mov    rdi, 0
+   658 00000805 0F05                    syscall
+   659                                  
+   660 00000807 C3                      ret
