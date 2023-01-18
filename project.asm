@@ -40,23 +40,26 @@ orientation:
     
     ; cx sera bientôt modifié mais on doit l'utiliser 2 fois
     ; Donc on le sauvegarde
-    push cx
-    sub cx, si
-    sub r8w, dx
     
-    imul cx, r8w
+    
+    
+    push rcx
+    sub rcx, rsi
+    sub r8, rdx
+    
+    imul rcx, r8
     
     ; Nous n'utiliserons plus si
     ; Donc nous restaurons la valeur de cx dans si
-    pop si
-    sub dx, di
-    sub r9w, si
+    pop rsi
+    sub rdx, rdi
+    sub r9, rsi
     
-    imul dx, r9w
+    imul rdx, r9
     
-    sub cx, dx
+    sub rcx, rdx
     
-    cmp cx, 0
+    cmp rcx, 0
     jl clockwise
     
     mov eax, 1
@@ -70,7 +73,7 @@ ret
 
 global main
 
-%DEFINE NUM_POINTS 5
+%DEFINE NUM_POINTS 40
 %DEFINE MAX_X 255
 %DEFINE MAX_Y 255
 
@@ -127,7 +130,8 @@ checkIndex: resw 1
 section .text
 
 main:
-; Génération des points du programme
+
+;Génération des points du programme
 mov rbx, 0
 populatex:
     rdrand ax
@@ -137,8 +141,7 @@ populatex:
         cmp word[randnum], MAX_X
         jae modx
     mov ax, word[randnum]
-    mov word[coordx+rbx*2], ax
-    
+    mov word[coordx+rbx*2], ax    
     inc rbx
     cmp rbx, NUM_POINTS
     jb populatex
@@ -228,19 +231,19 @@ jarvis:
         cmp word[I], bx
         je nocandid
         ; Coord de P dans di et si
-        movzx rax, word[P]
-        mov di, word[coordx+rax*2]
-        mov si, word[coordy+rax*2]
+        movsx rax, word[P]
+        movsx rdi, word[coordx+rax*2]
+        movsx rsi, word[coordy+rax*2]
         
         ; Coord de I dans dx et cx
-        movzx rax, word[I]
-        mov dx, word[coordx+rax*2]
-        mov cx, word[coordy+rax*2]
+        movsx rax, word[I]
+        movsx rdx, word[coordx+rax*2]
+        movsx rcx, word[coordy+rax*2]
         
         ; Coord de Q dans r8w et r9w
-        movzx rax, word[Q]
-        mov r8w, word[coordx+rax*2]
-        mov r9w, word[coordy+rax*2]
+        movsx rax, word[Q]
+        movsx r8, word[coordx+rax*2]
+        movsx r9, word[coordy+rax*2]
         mov rax, 0
         call orientation
         
@@ -276,18 +279,18 @@ printenv:
     jb printenv  
     
 rdrand ax
-mov word[lastPointX], 50; ax
+mov word[lastPointX], ax
 lastmodx:
-;    sub word[lastPointX], MAX_X
-;    cmp word[lastPointX], MAX_X
-;    jae lastmodx
+    sub word[lastPointX], MAX_X
+    cmp word[lastPointX], MAX_X
+    jae lastmodx
     
 rdrand ax
-mov word[lastPointY], 75; ax
+mov word[lastPointY], ax
 lastmody:
-;    sub word[lastPointY], MAX_Y
-;    cmp word[lastPointY], MAX_Y
-;    jae lastmody
+    sub word[lastPointY], MAX_Y
+    cmp word[lastPointY], MAX_Y
+    jae lastmody
     
 mov word[checkIndex], 0
 mov word[isInside], 1
@@ -335,21 +338,20 @@ checkInside:
     cmp word[checkIndex], ax
     jb checkInside
 
-mov rdi, printx
-movzx rsi, word[lastPointX]
-mov rax, 0
-call printf
-
-mov rdi, printy
-movzx rsi, word[lastPointY]
-mov rax, 0
-call printf
-
-mov rdi, resultat
-movzx rsi, byte[isInside]
-mov rax, 0
-call printf
-        
+    mov rdi, printx
+    movzx rsi, word[lastPointX]
+    mov rax, 0
+    call printf
+    
+    mov rdi, printy
+    movzx rsi, word[lastPointY]
+    mov rax, 0
+    call printf
+    
+    mov rdi, resultat
+    movzx rsi, byte[isInside]
+    mov rax, 0
+    call printf
         
 ;fenetre dessin   
 xor     rdi,rdi
@@ -583,10 +585,18 @@ color_point_left:
         push r9
         call XFillArc
         ;jmp flush    
-        
+     
+;
+
+    
+    movzx rsi, byte[isInside]
+    mov rax, 0  
+    cmp rsi ,rax
+    je color_point_out       
+;              
 color_point_in:
         ;mov rbx, (le point en question)
-        mov rbx, 2
+        ;mov rbx, 2
         ;couleur du point 1
         mov rdi,qword[display_name]
         mov rsi,qword[gc]
@@ -597,9 +607,9 @@ color_point_in:
         mov rdi,qword[display_name]
         mov rsi,qword[window]
         mov rdx,qword[gc]	
-        movzx rcx, word [coordx+rbx*2] ; x
+        movzx rcx, word[lastPointX] ; x
         sub ecx,3		
-        movzx r8, word [coordy+rbx*2] ; y
+        movzx r8, word[lastPointY] ; y
         sub r8,3
         mov r9,6
         mov rax,23040
@@ -607,7 +617,8 @@ color_point_in:
         push 0
         push r9
         call XFillArc
-        ;jmp flush
+        jmp flush
+        ;ret
         
 color_point_out:
         ;mov rbx, (le point en question)
@@ -622,9 +633,9 @@ color_point_out:
         mov rdi,qword[display_name]
         mov rsi,qword[window]
         mov rdx,qword[gc]	
-        movzx rcx, word [coordx+rbx*2] ; x
+        movzx rcx, word[lastPointX] ; x
         sub ecx,3		
-        movzx r8, word [coordy+rbx*2] ; y
+        movzx r8, word[lastPointX] ; y
         sub r8,3
         mov r9,6
         mov rax,23040
@@ -633,6 +644,7 @@ color_point_out:
         push r9
         call XFillArc
         jmp flush
+        ;ret
 ; ############################
 ; # FIN DE LA ZONE DE DESSIN #
 ; ############################
