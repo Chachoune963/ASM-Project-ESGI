@@ -259,8 +259,7 @@ dessin:
         mov eax, 0
         
         inc rbx
-        
-        
+           
         cmp rbx , NUM_POINTS
         je set_draw_last_point
         
@@ -305,7 +304,57 @@ dessin:
             mov r9d,dword[x2]	; coordonnée destination en x
             push qword[y2]	; coordonnée destination en y
             call XDrawLine
+            ;jmp flush
+            
+color_point_in:
+        ;mov rbx, (le point en question)
+        mov rbx,2
+        ;couleur du point 1
+        mov rdi,qword[display_name]
+        mov rsi,qword[gc]
+        mov edx,0x00FF00	; Couleur vert
+        call XSetForeground
         
+        ; Dessin du point
+        mov rdi,qword[display_name]
+        mov rsi,qword[window]
+        mov rdx,qword[gc]	
+        movzx rcx, word [coordx+rbx*2] ; x
+        sub ecx,3		
+        movzx r8, word [coordy+rbx*2] ; y
+        sub r8,3
+        mov r9,6
+        mov rax,23040
+        push rax
+        push 0
+        push r9
+        call XFillArc
+        ;jmp flush
+        
+color_point_out:
+        ;mov rbx, (le point en question)
+        mov rbx, 5
+        ;couleur du point 1
+        mov rdi,qword[display_name]
+        mov rsi,qword[gc]
+        mov edx,0xFF0000	; Couleur vert
+        call XSetForeground
+        
+        ; Dessin du point
+        mov rdi,qword[display_name]
+        mov rsi,qword[window]
+        mov rdx,qword[gc]	
+        movzx rcx, word [coordx+rbx*2] ; x
+        sub ecx,3		
+        movzx r8, word [coordy+rbx*2] ; y
+        sub r8,3
+        mov r9,6
+        mov rax,23040
+        push rax
+        push 0
+        push r9
+        call XFillArc
+        jmp flush
 ; ############################
 ; # FIN DE LA ZONE DE DESSIN #
 ; ############################
