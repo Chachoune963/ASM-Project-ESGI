@@ -208,7 +208,7 @@
    195 000001FA 7410                    je dessin			; on saute au label 'dessin'
    196                                  
    197 000001FC 833C25[00000000]02      cmp dword[event],KeyPress			; Si on appuie sur une touche
-   198 00000204 0F848B000000            je closeDisplay					; on saute au label 'closeDisplay' qui ferme la fenêtre
+   198 00000204 0F84B5010000            je closeDisplay					; on saute au label 'closeDisplay' qui ferme la fenêtre
    199 0000020A EBCF                    jmp boucle
    200                                      
    201                                  ;#########################################
@@ -219,7 +219,7 @@
    206                                      ; boucle dessin point
    207                                      
    208 0000020C BB00000000                  mov rbx, 0  
-   209                                      draw_loop:
+   209                                      draw_point_loop:
    210                                  
    211                                          ;couleur du point 1
    212 00000211 488B3C25[00000000]              mov rdi,qword[display_name]
@@ -249,35 +249,105 @@
    234                                          
    235                                          ;check if end loop
    236 00000274 4883FB0A                        cmp rbx, NUM_POINTS
-   237 00000278 7297                            jb draw_loop
-   238                                  
-   239                                  ; ############################
-   240                                  ; # FIN DE LA ZONE DE DESSIN #
-   241                                  ; ############################
-   242 0000027A EB00                    jmp flush
-   243                                  
-   244                                  flush:
-   245 0000027C 488B3C25[00000000]      mov rdi,qword[display_name]
-   246 00000284 E8(00000000)            call XFlush
-   247 00000289 E94DFFFFFF              jmp boucle
-   248 0000028E B822000000              mov rax,34
-   249 00000293 0F05                    syscall
-   250                                  
-   251                                  closeDisplay:
-   252 00000295 488B0425[00000000]          mov     rax,qword[display_name]
-   253 0000029D 4889CF                      mov     rdi,rcx
-   254 000002A0 E8(00000000)                call    XCloseDisplay
-   255 000002A5 4831FF                      xor	    rdi,rdi
-   256 000002A8 E8(00000000)                call    exit	
-   257                                  
-   258                                  ; Une fois cette étape fini, nous connaissons le point le plus à gauche.
-   259                                  ; On commence donc la marche de Jarvis
-   260 000002AD BB00000000              mov rbx, 0
-   261                                  jarvis:
-   262                                      
-   263                                  ; Pour fermer le programme proprement :
-   264 000002B2 B83C000000              mov    rax, 60         
-   265 000002B7 BF00000000              mov    rdi, 0
-   266 000002BC 0F05                    syscall
-   267                                  
-   268 000002BE C3                      ret
+   237 00000278 7297                            jb draw_point_loop
+   238                                          
+   239                                          
+   240                                      ; boucle dessin ligne
+   241                                      
+   242 0000027A BB00000000                  mov rbx, 0 
+   243 0000027F B800000000                  mov rax, 0 
+   244                                      draw_line_loop:
+   245                                  
+   246                                          ;couleur de la ligne 1
+   247 00000284 488B3C25[00000000]              mov rdi,qword[display_name]
+   248 0000028C 488B3425[24000000]              mov rsi,qword[gc]
+   249 00000294 BA00000000                      mov edx,0x000000	; Couleur du crayon ; noir
+   250 00000299 E8(00000000)                    call XSetForeground
+   251                                          
+   252                                          ; coordonnées de la ligne 1 (noire)
+   253 0000029E 0FB7841B[2C000000]              movzx eax, word [coordx+rbx*2]
+   254 000002A6 890425[C0000000]                mov dword[x1],eax
+   255 000002AD B800000000                      mov eax, 0
+   256                                          
+   257 000002B2 0FB7841B[40000000]              movzx eax, word [coordy+rbx*2]
+   258 000002BA 890425[C8000000]                mov dword[y1],eax
+   259 000002C1 B800000000                      mov eax, 0
+   260                                          
+   261 000002C6 48FFC3                          inc rbx
+   262                                          
+   263                                          
+   264 000002C9 4883FB0A                        cmp rbx , NUM_POINTS
+   265 000002CD 746D                            je set_draw_last_point
+   266                                          
+   267 000002CF 0FB7841B[2C000000]              movzx eax, word [coordx+rbx*2]
+   268 000002D7 890425[C4000000]                mov dword[x2], eax
+   269 000002DE B800000000                      mov eax, 0
+   270                                          
+   271 000002E3 0FB7841B[40000000]              movzx eax, word [coordy+rbx*2]
+   272 000002EB 890425[CC000000]                mov dword[y2], eax
+   273 000002F2 B800000000                      mov eax, 0
+   274                                          
+   275                                          ; dessin de la ligne 1
+   276 000002F7 488B3C25[00000000]              mov rdi,qword[display_name]
+   277 000002FF 488B3425[1C000000]              mov rsi,qword[window]
+   278 00000307 488B1425[24000000]              mov rdx,qword[gc]
+   279 0000030F 8B0C25[C0000000]                mov ecx,dword[x1]	; coordonnée source en x
+   280 00000316 448B0425[C8000000]              mov r8d,dword[y1]	; coordonnée source en y
+   281 0000031E 448B0C25[C4000000]              mov r9d,dword[x2]	; coordonnée destination en x
+   282 00000326 FF3425[CC000000]                push qword[y2]		; coordonnée destination en y
+   283 0000032D E8(00000000)                    call XDrawLine
+   284                                          
+   285                                          ;check if end loop
+   286 00000332 4883FB0A                        cmp rbx, NUM_POINTS
+   287 00000336 0F8248FFFFFF                    jb draw_line_loop
+   288                                          
+   289                                          set_draw_last_point:
+   290 0000033C BB00000000                          mov rbx, 0
+   291 00000341 0FB7841B[2C000000]                  movzx eax, word [coordx+rbx*2]
+   292 00000349 890425[C4000000]                    mov dword[x2], eax
+   293 00000350 B800000000                          mov eax, 0
+   294                                              
+   295 00000355 0FB7841B[40000000]                  movzx eax, word [coordy+rbx*2]
+   296 0000035D 890425[CC000000]                    mov dword[y2], eax
+   297 00000364 B800000000                          mov eax, 0
+   298                                              
+   299                                              ; dessin de la ligne 1
+   300 00000369 488B3C25[00000000]                  mov rdi,qword[display_name]
+   301 00000371 488B3425[1C000000]                  mov rsi,qword[window]
+   302 00000379 488B1425[24000000]                  mov rdx,qword[gc]
+   303 00000381 8B0C25[C0000000]                    mov ecx,dword[x1]	; coordonnée source en x
+   304 00000388 448B0425[C8000000]                  mov r8d,dword[y1]	; coordonnée source en y
+   305 00000390 448B0C25[C4000000]                  mov r9d,dword[x2]	; coordonnée destination en x
+   306 00000398 FF3425[CC000000]                    push qword[y2]	; coordonnée destination en y
+   307 0000039F E8(00000000)                        call XDrawLine
+   308                                          
+   309                                  ; ############################
+   310                                  ; # FIN DE LA ZONE DE DESSIN #
+   311                                  ; ############################
+   312 000003A4 EB00                    jmp flush
+   313                                  
+   314                                  flush:
+   315 000003A6 488B3C25[00000000]          mov rdi,qword[display_name]
+   316 000003AE E8(00000000)                call XFlush
+   317 000003B3 E923FEFFFF                  jmp boucle
+   318 000003B8 B822000000                  mov rax,34
+   319 000003BD 0F05                        syscall
+   320                                  
+   321                                  closeDisplay:
+   322 000003BF 488B0425[00000000]          mov     rax,qword[display_name]
+   323 000003C7 4889CF                      mov     rdi,rcx
+   324 000003CA E8(00000000)                call    XCloseDisplay
+   325 000003CF 4831FF                      xor	    rdi,rdi
+   326 000003D2 E8(00000000)                call    exit	
+   327                                  
+   328                                  ; Une fois cette étape fini, nous connaissons le point le plus à gauche.
+   329                                  ; On commence donc la marche de Jarvis
+   330 000003D7 BB00000000              mov rbx, 0
+   331                                  jarvis:
+   332                                      
+   333                                  ; Pour fermer le programme proprement :
+   334 000003DC B83C000000              mov    rax, 60         
+   335 000003E1 BF00000000              mov    rdi, 0
+   336 000003E6 0F05                    syscall
+   337                                  
+   338 000003E8 C3                      ret

@@ -206,7 +206,7 @@ dessin:
     ; boucle dessin point
     
     mov rbx, 0  
-    draw_loop:
+    draw_point_loop:
 
         ;couleur du point 1
         mov rdi,qword[display_name]
@@ -234,19 +234,89 @@ dessin:
         
         ;check if end loop
         cmp rbx, NUM_POINTS
-        jb draw_loop
+        jb draw_point_loop
+        
+        
+    ; boucle dessin ligne
+    
+    mov rbx, 0 
+    mov rax, 0 
+    draw_line_loop:
 
+        ;couleur de la ligne 1
+        mov rdi,qword[display_name]
+        mov rsi,qword[gc]
+        mov edx,0x000000	; Couleur du crayon ; noir
+        call XSetForeground
+        
+        ; coordonnées de la ligne 1 (noire)
+        movzx eax, word [coordx+rbx*2]
+        mov dword[x1],eax
+        mov eax, 0
+        
+        movzx eax, word [coordy+rbx*2]
+        mov dword[y1],eax
+        mov eax, 0
+        
+        inc rbx
+        
+        
+        cmp rbx , NUM_POINTS
+        je set_draw_last_point
+        
+        movzx eax, word [coordx+rbx*2]
+        mov dword[x2], eax
+        mov eax, 0
+        
+        movzx eax, word [coordy+rbx*2]
+        mov dword[y2], eax
+        mov eax, 0
+        
+        ; dessin de la ligne 1
+        mov rdi,qword[display_name]
+        mov rsi,qword[window]
+        mov rdx,qword[gc]
+        mov ecx,dword[x1]	; coordonnée source en x
+        mov r8d,dword[y1]	; coordonnée source en y
+        mov r9d,dword[x2]	; coordonnée destination en x
+        push qword[y2]		; coordonnée destination en y
+        call XDrawLine
+        
+        ;check if end loop
+        cmp rbx, NUM_POINTS
+        jb draw_line_loop
+        
+        set_draw_last_point:
+            mov rbx, 0
+            movzx eax, word [coordx+rbx*2]
+            mov dword[x2], eax
+            mov eax, 0
+            
+            movzx eax, word [coordy+rbx*2]
+            mov dword[y2], eax
+            mov eax, 0
+            
+            ; dessin de la ligne 1
+            mov rdi,qword[display_name]
+            mov rsi,qword[window]
+            mov rdx,qword[gc]
+            mov ecx,dword[x1]	; coordonnée source en x
+            mov r8d,dword[y1]	; coordonnée source en y
+            mov r9d,dword[x2]	; coordonnée destination en x
+            push qword[y2]	; coordonnée destination en y
+            call XDrawLine
+        
 ; ############################
 ; # FIN DE LA ZONE DE DESSIN #
 ; ############################
 jmp flush
 
 flush:
-mov rdi,qword[display_name]
-call XFlush
-jmp boucle
-mov rax,34
-syscall
+    mov rdi,qword[display_name]
+    call XFlush
+    jmp boucle
+    mov rax,34
+    syscall
 
 closeDisplay:
     mov     rax,qword[display_name]
