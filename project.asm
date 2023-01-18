@@ -40,23 +40,26 @@ orientation:
     
     ; cx sera bientôt modifié mais on doit l'utiliser 2 fois
     ; Donc on le sauvegarde
-    push cx
-    sub cx, si
-    sub r8w, dx
     
-    imul cx, r8w
+    
+    
+    push rcx
+    sub rcx, rsi
+    sub r8, rdx
+    
+    imul rcx, r8
     
     ; Nous n'utiliserons plus si
     ; Donc nous restaurons la valeur de cx dans si
-    pop si
-    sub dx, di
-    sub r9w, si
+    pop rsi
+    sub rdx, rdi
+    sub r9, rsi
     
-    imul dx, r9w
+    imul rdx, r9
     
-    sub cx, dx
+    sub rcx, rdx
     
-    cmp cx, 0
+    cmp rcx, 0
     jl clockwise
     
     mov eax, 1
@@ -228,19 +231,19 @@ jarvis:
         cmp word[I], bx
         je nocandid
         ; Coord de P dans di et si
-        movzx rax, word[P]
-        mov di, word[coordx+rax*2]
-        mov si, word[coordy+rax*2]
+        movsx rax, word[P]
+        movsx rdi, word[coordx+rax*2]
+        movsx rsi, word[coordy+rax*2]
         
         ; Coord de I dans dx et cx
-        movzx rax, word[I]
-        mov dx, word[coordx+rax*2]
-        mov cx, word[coordy+rax*2]
+        movsx rax, word[I]
+        movsx rdx, word[coordx+rax*2]
+        movsx rcx, word[coordy+rax*2]
         
         ; Coord de Q dans r8w et r9w
-        movzx rax, word[Q]
-        mov r8w, word[coordx+rax*2]
-        mov r9w, word[coordy+rax*2]
+        movsx rax, word[Q]
+        movsx r8, word[coordx+rax*2]
+        movsx r9, word[coordy+rax*2]
         mov rax, 0
         call orientation
         
