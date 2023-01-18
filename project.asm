@@ -1,5 +1,41 @@
 extern printf
 
+global orientation
+orientation:
+    ; Coord de P dans di et si
+    ; Coord de I dans dx et cx
+    ; Coord de Q dans r8w et r9w
+    
+    ; cx sera bientôt modifié mais on doit l'utiliser 2 fois
+    ; Donc on le sauvegarde
+    push cx
+    sub cx, si
+    sub r8w, dx
+    
+    imul cx, r8w
+    
+    ; Nous n'utiliserons plus si
+    ; Donc nous restaurons la valeur de cx dans si
+    pop si
+    sub dx, di
+    sub r9w, si
+    
+    imul dx, r9w
+    
+    sub cx, dx
+    
+    cmp ecx, 0
+    jle clockwise
+    
+    mov eax, 1
+    jmp endori
+    
+    clockwise:
+    mov eax, 0
+    
+    endori:
+ret
+
 global main
 
 %DEFINE NUM_POINTS 7
@@ -7,6 +43,7 @@ global main
 %DEFINE MAX_Y 255
 
 section .data
+test: db "Test", 10, 0
 printx: db "x : %d", 10, 0
 printy: db "y : %d", 10, 0
 jpp: db "On test le point: %d...", 10, 0
@@ -16,49 +53,54 @@ env: db "Enveloppe: %d", 10, 0
 coef: db "Coef: %d", 10, 0
 resultat: db "Resultat: %d", 10, 0
 
+coordx: dw 0, 2, 1, 2, 3, 0, 3
+coordy: dw 0, 2, 1, 2, 3, 0, 3
+
 section .bss
-coordx: resw NUM_POINTS
-coordy: resw NUM_POINTS
+;coordx: resw NUM_POINTS
+;coordy: resw NUM_POINTS
 enveloppe: resw NUM_POINTS
 sizeEnveloppe: resb 1
 randnum: resw 1
 minpoint: resw 1
-pv: resd 1
 
-bestcandidate: resw 1
+P: resw 1
+Q: resw 1
+I: resw 1
 
 section .text
+
 main:
 ; Génération des points du programme
-mov rbx, 0
-populatex:
-    rdrand ax
-    mov [randnum], ax
-    modx:
-        sub word[randnum], MAX_X
-        cmp word[randnum], MAX_X
-        jae modx
-    mov ax, word[randnum]
-    mov word[coordx+rbx*2], ax
-    
-    inc rbx
-    cmp rbx, NUM_POINTS
-    jb populatex
-
-mov rbx, 0
-populatey:
-    rdrand ax
-    mov word[randnum], ax
-    mody:
-        sub word[randnum], MAX_Y
-        cmp word[randnum], MAX_Y
-        jae mody
-    mov ax, word[randnum]
-    mov word[coordy+rbx*2], ax
-
-    inc rbx
-    cmp rbx, NUM_POINTS
-    jb populatey
+;mov rbx, 0
+;populatex:
+;    rdrand ax
+;    mov [randnum], ax
+;    modx:
+;        sub word[randnum], MAX_X
+;        cmp word[randnum], MAX_X
+;        jae modx
+;    mov ax, word[randnum]
+;    mov word[coordx+rbx*2], ax
+;    
+;    inc rbx
+;    cmp rbx, NUM_POINTS
+;    jb populatex
+;
+;mov rbx, 0
+;populatey:
+;    rdrand ax
+;    mov word[randnum], ax
+;    mody:
+;        sub word[randnum], MAX_Y
+;        cmp word[randnum], MAX_Y
+;        jae mody
+;    mov ax, word[randnum]
+;    mov word[coordy+rbx*2], ax
+;
+;    inc rbx
+;    cmp rbx, NUM_POINTS
+;    jb populatey
     
 mov rbx, 0
 printloop:
@@ -87,7 +129,7 @@ minAlgo:
     
     ; On le compare au point parcouru actuel
     cmp ax, word[coordx+rbx*2]
-    jb lower
+    jbe lower
             
     ; Si minpoint > point actuel, on mets point actuel dans minpoint
     mov rax, rbx
@@ -104,127 +146,72 @@ minAlgo:
 ; rbx = Index actuel de enveloppe (Pas d'équivalent, à ne pas utiliser pr l'instant)
 ; rcx = Prochain candidat de P (Q)
 xor rax, rax
-xor rbx, rbx
-xor rcx, rcx
 mov ax, word[minpoint]
+mov word[P], ax
+mov word[sizeEnveloppe], 0
 jarvis:
+    mov ax, word[P]
+    movzx rbx, word[sizeEnveloppe]
     mov [enveloppe+rbx*2], ax
     
-    mov cx, ax
-    inc cx
-    cmp cx, NUM_POINTS
+    mov word[Q], ax
+    inc word[Q]
+    cmp word[Q], NUM_POINTS
     jb nofix
     
-    sub cx, NUM_POINTS
+    sub word[Q], NUM_POINTS
     
     nofix:
-    push rbx
-    xor rbx, rbx
+    mov word[I], 0
     parcoursListe:
-        mov r9w, word[coordy+rbx*2]
-        sub r9w, word[coordy+rax*2]
+        ; Coord de P dans di et si
+        movzx rax, word[P]
+        mov di, word[coordx+rax*2]
+        mov si, word[coordy+rax*2]
         
-        mov r10w, word[coordx+rcx*2]
-        sub r10w, word[coordx+rbx*2]
+        ; Coord de I dans dx et cx
+        movzx rax, word[I]
+        mov dx, word[coordx+rax*2]
+        mov cx, word[coordy+rax*2]
         
-        mov rdi, coef
-        movsx rsi, r9w
-        push rax
-        push rbx
-        push rcx
+        ; Coord de Q dans r8w et r9w
+        movzx rax, word[Q]
+        mov r8w, word[coordx+rax*2]
+        mov r9w, word[coordy+rax*2]
         mov rax, 0
-        call printf
-        pop rcx
-        pop rbx
-        pop rax
+        call orientation
         
-        imul r9w, r10w
-        
-        mov rdi, coef
-        movsx rsi, r10w
-        push rax
-        push rbx
-        push rcx
-        mov rax, 0
-        call printf
-        pop rcx
-        pop rbx
-        pop rax
-        
-        mov rdi, resultat
-        mov esi, r9d
-        push rax
-        push rbx
-        push rcx
-        mov rax, 0
-        call printf
-        pop rcx
-        pop rbx
-        pop rax
-        
-        
-        mov r11w, word[coordx+rbx*2]
-        sub r11w, word[coordx+rax*2]
-        
-        mov r12w, word[coordy+rcx*2]
-        mov r12w, word[coordy+rbx*2]
-        
-        imul r11w, r12w
-        
-        sub r9d, r11d
-        mov dword[pv], r9d
-                
-;        mov rdi, jpp
-;        mov rsi, rbx
-;        push rax
-;        push rbx
-;        push rcx
-;        mov rax, 0
-;        call printf
-;        pop rcx
-;        pop rbx
-;        pop rax
-;        
-;        mov rdi, jenaismarre
-;        mov esi, dword[pv]
-;        push rax
-;        push rbx
-;        push rcx
-;        mov rax, 0
-;        call printf
-;        pop rcx
-;        pop rbx
-;        pop rax
-;        
-;        mov rdi, tuezmoi
-;        mov rsi, rcx
-;        push rax
-;        push rbx
-;        push rcx
-;        mov rax, 0
-;        call printf
-;        pop rcx
-;        pop rbx
-;        pop rax
-        
-        cmp dword[pv], 0
+        cmp eax, 0
         jle nocandid
         
-        mov rcx, rbx
+        movzx rbx, word[I]
+        mov word[Q], bx
         
         nocandid:
-        inc rbx
-        cmp rbx, NUM_POINTS
-        jb parcoursListe
-    pop rbx
-    
-    mov rax, rcx
-    inc rbx
-    cmp rbx, NUM_POINTS
-    jae STOP
-    cmp ax, word[minpoint]
+        
+        inc word[I]
+        cmp word[I], NUM_POINTS
+        jb parcoursListe    
+    mov bx, word[Q]
+    mov word[P], bx
+    inc word[sizeEnveloppe]
+;    cmp word[sizeEnveloppe], NUM_POINTS
+;    jae STOP
+    mov bx, word[minpoint]
+    cmp word[P], bx
     jne jarvis
-STOP:        
+;STOP:
+
+mov rbx, 0
+printenv:
+    mov rdi, env
+    movzx rsi, word[enveloppe+rbx*2]
+    mov rax, 0
+    call printf
+
+    inc rbx
+    cmp bx, word[sizeEnveloppe]
+    jb printenv
 
 ; Pour fermer le programme proprement :
 mov    rax, 60         
