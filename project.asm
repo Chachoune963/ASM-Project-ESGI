@@ -488,7 +488,7 @@ color_point_in:
         
 color_point_out:
         ;mov rbx, (le point en question)
-        mov rbx, 5
+        mov rbx, 1
         ;couleur du point 1
         mov rdi,qword[display_name]
         mov rsi,qword[gc]

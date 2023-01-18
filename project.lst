@@ -360,7 +360,7 @@
    325 0000037A 7410                    je dessin			; on saute au label 'dessin'
    326                                  
    327 0000037C 833C25[00000000]02      cmp dword[event],KeyPress        ; Si on appuie sur une touche
-   328 00000384 0F84EF020000            je closeDisplay		        ; on saute au label 'closeDisplay' qui ferme la fenêtre
+   328 00000384 0F84EA020000            je closeDisplay		        ; on saute au label 'closeDisplay' qui ferme la fenêtre
    329 0000038A EBCF                    jmp boucle
    330                                      
    331                                  ;#########################################
@@ -480,7 +480,7 @@
    442                                          ;couleur du point 1
    443 0000052D 488B3C25[00000000]              mov rdi,qword[display_name]
    444 00000535 488B3425[24000000]              mov rsi,qword[gc]
-   445 0000053D BAFF000000                      mov edx,0x0000FF	; Couleur vert
+   445 0000053D BAFF000000                      mov edx,0x0000FF	; Couleur bleu
    446 00000542 E8(00000000)                    call XSetForeground
    447                                          
    448                                          ; Dessin du point
@@ -499,83 +499,83 @@
    459 00000584 6A00                            push 0
    460 00000586 4151                            push r9
    461 00000588 E8(00000000)                    call XFillArc
-   462 0000058D E9CE000000                      jmp flush    
+   462                                          ;jmp flush    
    463                                          
    464                                  color_point_in:
    465                                          ;mov rbx, (le point en question)
-   466 00000592 BB06000000                      mov rbx, 6
+   466 0000058D BB06000000                      mov rbx, 6
    467                                          ;couleur du point 1
-   468 00000597 488B3C25[00000000]              mov rdi,qword[display_name]
-   469 0000059F 488B3425[24000000]              mov rsi,qword[gc]
-   470 000005A7 BA00FF0000                      mov edx,0x00FF00	; Couleur vert
-   471 000005AC E8(00000000)                    call XSetForeground
+   468 00000592 488B3C25[00000000]              mov rdi,qword[display_name]
+   469 0000059A 488B3425[24000000]              mov rsi,qword[gc]
+   470 000005A2 BA00FF0000                      mov edx,0x00FF00	; Couleur vert
+   471 000005A7 E8(00000000)                    call XSetForeground
    472                                          
    473                                          ; Dessin du point
-   474 000005B1 488B3C25[00000000]              mov rdi,qword[display_name]
-   475 000005B9 488B3425[1C000000]              mov rsi,qword[window]
-   476 000005C1 488B1425[24000000]              mov rdx,qword[gc]	
-   477 000005C9 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; x
-   477 000005CE [2C000000]         
-   478 000005D2 83E903                          sub ecx,3		
-   479 000005D5 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; y
-   479 000005DA [3A000000]         
-   480 000005DE 4983E803                        sub r8,3
-   481 000005E2 41B906000000                    mov r9,6
-   482 000005E8 B8005A0000                      mov rax,23040
-   483 000005ED 50                              push rax
-   484 000005EE 6A00                            push 0
-   485 000005F0 4151                            push r9
-   486 000005F2 E8(00000000)                    call XFillArc
+   474 000005AC 488B3C25[00000000]              mov rdi,qword[display_name]
+   475 000005B4 488B3425[1C000000]              mov rsi,qword[window]
+   476 000005BC 488B1425[24000000]              mov rdx,qword[gc]	
+   477 000005C4 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; x
+   477 000005C9 [2C000000]         
+   478 000005CD 83E903                          sub ecx,3		
+   479 000005D0 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; y
+   479 000005D5 [3A000000]         
+   480 000005D9 4983E803                        sub r8,3
+   481 000005DD 41B906000000                    mov r9,6
+   482 000005E3 B8005A0000                      mov rax,23040
+   483 000005E8 50                              push rax
+   484 000005E9 6A00                            push 0
+   485 000005EB 4151                            push r9
+   486 000005ED E8(00000000)                    call XFillArc
    487                                          ;jmp flush
    488                                          
    489                                  color_point_out:
    490                                          ;mov rbx, (le point en question)
-   491 000005F7 BB05000000                      mov rbx, 5
+   491 000005F2 BB01000000                      mov rbx, 1
    492                                          ;couleur du point 1
-   493 000005FC 488B3C25[00000000]              mov rdi,qword[display_name]
-   494 00000604 488B3425[24000000]              mov rsi,qword[gc]
-   495 0000060C BA0000FF00                      mov edx,0xFF0000	; Couleur rouge
-   496 00000611 E8(00000000)                    call XSetForeground
+   493 000005F7 488B3C25[00000000]              mov rdi,qword[display_name]
+   494 000005FF 488B3425[24000000]              mov rsi,qword[gc]
+   495 00000607 BA0000FF00                      mov edx,0xFF0000	; Couleur rouge
+   496 0000060C E8(00000000)                    call XSetForeground
    497                                          
    498                                          ; Dessin du point
-   499 00000616 488B3C25[00000000]              mov rdi,qword[display_name]
-   500 0000061E 488B3425[1C000000]              mov rsi,qword[window]
-   501 00000626 488B1425[24000000]              mov rdx,qword[gc]	
-   502 0000062E 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; x
-   502 00000633 [2C000000]         
-   503 00000637 83E903                          sub ecx,3		
-   504 0000063A 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; y
-   504 0000063F [3A000000]         
-   505 00000643 4983E803                        sub r8,3
-   506 00000647 41B906000000                    mov r9,6
-   507 0000064D B8005A0000                      mov rax,23040
-   508 00000652 50                              push rax
-   509 00000653 6A00                            push 0
-   510 00000655 4151                            push r9
-   511 00000657 E8(00000000)                    call XFillArc
-   512 0000065C EB02                            jmp flush
+   499 00000611 488B3C25[00000000]              mov rdi,qword[display_name]
+   500 00000619 488B3425[1C000000]              mov rsi,qword[window]
+   501 00000621 488B1425[24000000]              mov rdx,qword[gc]	
+   502 00000629 480FB78C1B-                     movzx rcx, word [coordx+rbx*2] ; x
+   502 0000062E [2C000000]         
+   503 00000632 83E903                          sub ecx,3		
+   504 00000635 4C0FB7841B-                     movzx r8, word [coordy+rbx*2] ; y
+   504 0000063A [3A000000]         
+   505 0000063E 4983E803                        sub r8,3
+   506 00000642 41B906000000                    mov r9,6
+   507 00000648 B8005A0000                      mov rax,23040
+   508 0000064D 50                              push rax
+   509 0000064E 6A00                            push 0
+   510 00000650 4151                            push r9
+   511 00000652 E8(00000000)                    call XFillArc
+   512 00000657 EB02                            jmp flush
    513                                  ; ############################
    514                                  ; # FIN DE LA ZONE DE DESSIN #
    515                                  ; ############################
-   516 0000065E EB00                    jmp flush
+   516 00000659 EB00                    jmp flush
    517                                  
    518                                  flush:
-   519 00000660 488B3C25[00000000]          mov rdi,qword[display_name]
-   520 00000668 E8(00000000)                call XFlush
-   521 0000066D E9E9FCFFFF                  jmp boucle
-   522 00000672 B822000000                  mov rax,34
-   523 00000677 0F05                        syscall
+   519 0000065B 488B3C25[00000000]          mov rdi,qword[display_name]
+   520 00000663 E8(00000000)                call XFlush
+   521 00000668 E9EEFCFFFF                  jmp boucle
+   522 0000066D B822000000                  mov rax,34
+   523 00000672 0F05                        syscall
    524                                  
    525                                  closeDisplay:
-   526 00000679 488B0425[00000000]          mov     rax,qword[display_name]
-   527 00000681 4889CF                      mov     rdi,rcx
-   528 00000684 E8(00000000)                call    XCloseDisplay
-   529 00000689 4831FF                      xor	    rdi,rdi
-   530 0000068C E8(00000000)                call    exit	
+   526 00000674 488B0425[00000000]          mov     rax,qword[display_name]
+   527 0000067C 4889CF                      mov     rdi,rcx
+   528 0000067F E8(00000000)                call    XCloseDisplay
+   529 00000684 4831FF                      xor	    rdi,rdi
+   530 00000687 E8(00000000)                call    exit	
    531                                  
    532                                  ; Pour fermer le programme proprement :
-   533 00000691 B83C000000              mov    rax, 60         
-   534 00000696 BF00000000              mov    rdi, 0
-   535 0000069B 0F05                    syscall
+   533 0000068C B83C000000              mov    rax, 60         
+   534 00000691 BF00000000              mov    rdi, 0
+   535 00000696 0F05                    syscall
    536                                  
-   537 0000069D C3                      ret
+   537 00000698 C3                      ret
