@@ -70,7 +70,7 @@ ret
 
 global main
 
-%DEFINE NUM_POINTS 5
+%DEFINE NUM_POINTS 40
 %DEFINE MAX_X 255
 %DEFINE MAX_Y 255
 
@@ -95,8 +95,8 @@ tuezmoi: db "Depuis le point %d", 10, 0
 env: db "Enveloppe: %d", 10, 0
 coef: db "Coef: %d", 10, 0
 resultat: db "Resultat: %d", 10, 0
-coordx: dw 10, 102, 102, 108, 19
-coordy: dw 171, 3, 182, 103, 25
+;coordx: dw 10, 102, 102, 108, 19
+;coordy: dw 171, 3, 182, 103, 25
 
 section .bss
 display_name:	resq	1
@@ -108,8 +108,8 @@ height:        	resd	1
 window:		resq	1
 gc:		resq	1
 
-;coordx: resw NUM_POINTS
-;coordy: resw NUM_POINTS
+coordx: resw NUM_POINTS
+coordy: resw NUM_POINTS
 enveloppe: resw NUM_POINTS
 sizeEnveloppe: resb 1
 randnum: resw 1
@@ -127,39 +127,39 @@ checkIndex: resw 1
 section .text
 
 main:
-; Génération des points du programme
-;mov rbx, 0
-;populatex:
-;    rdrand ax
-;    mov [randnum], ax
-;    modx:
-;        sub word[randnum], MAX_X
-;        cmp word[randnum], MAX_X
-;        jae modx
-;    mov ax, word[randnum]
-;    mov word[coordx+rbx*2], ax
-;    
-;    inc rbx
-;    cmp rbx, NUM_POINTS
-;    jb populatex
+;Génération des points du programme
+mov rbx, 0
+populatex:
+    rdrand ax
+    mov [randnum], ax
+    modx:
+        sub word[randnum], MAX_X
+        cmp word[randnum], MAX_X
+        jae modx
+    mov ax, word[randnum]
+    mov word[coordx+rbx*2], ax
+    
+    inc rbx
+    cmp rbx, NUM_POINTS
+    jb populatex
 
-;mov rbx, 0
-;populatey:
-;    stc
-;    checkcf:
-;        rdrand ax
-;    jnc checkcf
-;    mov word[randnum], ax
-;    mody:
-;        sub word[randnum], MAX_Y
-;        cmp word[randnum], MAX_Y
-;        jae mody
-;    mov ax, word[randnum]
-;    mov word[coordy+rbx*2], ax
-;
-;    inc rbx
-;    cmp rbx, NUM_POINTS
-;    jb populatey
+mov rbx, 0
+populatey:
+    stc
+    checkcf:
+        rdrand ax
+    jnc checkcf
+    mov word[randnum], ax
+    mody:
+        sub word[randnum], MAX_Y
+        cmp word[randnum], MAX_Y
+        jae mody
+    mov ax, word[randnum]
+    mov word[coordy+rbx*2], ax
+
+    inc rbx
+    cmp rbx, NUM_POINTS
+    jb populatey
     
 mov rbx, 0
 printloop:
@@ -276,18 +276,18 @@ printenv:
     jb printenv  
     
 rdrand ax
-mov word[lastPointX], 50; ax
+mov word[lastPointX], ax
 lastmodx:
-;    sub word[lastPointX], MAX_X
-;    cmp word[lastPointX], MAX_X
-;    jae lastmodx
+    sub word[lastPointX], MAX_X
+    cmp word[lastPointX], MAX_X
+    jae lastmodx
     
 rdrand ax
-mov word[lastPointY], 75; ax
+mov word[lastPointY], ax
 lastmody:
-;    sub word[lastPointY], MAX_Y
-;    cmp word[lastPointY], MAX_Y
-;    jae lastmody
+    sub word[lastPointY], MAX_Y
+    cmp word[lastPointY], MAX_Y
+    jae lastmody
     
 mov word[checkIndex], 0
 mov word[isInside], 1
@@ -335,21 +335,20 @@ checkInside:
     cmp word[checkIndex], ax
     jb checkInside
 
-mov rdi, printx
-movzx rsi, word[lastPointX]
-mov rax, 0
-call printf
-
-mov rdi, printy
-movzx rsi, word[lastPointY]
-mov rax, 0
-call printf
-
-mov rdi, resultat
-movzx rsi, byte[isInside]
-mov rax, 0
-call printf
-        
+    mov rdi, printx
+    movzx rsi, word[lastPointX]
+    mov rax, 0
+    call printf
+    
+    mov rdi, printy
+    movzx rsi, word[lastPointY]
+    mov rax, 0
+    call printf
+    
+    mov rdi, resultat
+    movzx rsi, byte[isInside]
+    mov rax, 0
+    call printf
         
 ;fenetre dessin   
 xor     rdi,rdi
@@ -583,10 +582,18 @@ color_point_left:
         push r9
         call XFillArc
         ;jmp flush    
-        
+     
+;
+
+    
+    movzx rsi, byte[isInside]
+    mov rax, 0  
+    cmp rsi ,rax
+    je color_point_out       
+;              
 color_point_in:
         ;mov rbx, (le point en question)
-        mov rbx, 2
+        ;mov rbx, 2
         ;couleur du point 1
         mov rdi,qword[display_name]
         mov rsi,qword[gc]
@@ -597,9 +604,9 @@ color_point_in:
         mov rdi,qword[display_name]
         mov rsi,qword[window]
         mov rdx,qword[gc]	
-        movzx rcx, word [coordx+rbx*2] ; x
+        movzx rcx, word[lastPointX] ; x
         sub ecx,3		
-        movzx r8, word [coordy+rbx*2] ; y
+        movzx r8, word[lastPointY] ; y
         sub r8,3
         mov r9,6
         mov rax,23040
@@ -607,7 +614,8 @@ color_point_in:
         push 0
         push r9
         call XFillArc
-        ;jmp flush
+        jmp flush
+        ;ret
         
 color_point_out:
         ;mov rbx, (le point en question)
@@ -622,9 +630,9 @@ color_point_out:
         mov rdi,qword[display_name]
         mov rsi,qword[window]
         mov rdx,qword[gc]	
-        movzx rcx, word [coordx+rbx*2] ; x
+        movzx rcx, word[lastPointX] ; x
         sub ecx,3		
-        movzx r8, word [coordy+rbx*2] ; y
+        movzx r8, word[lastPointX] ; y
         sub r8,3
         mov r9,6
         mov rax,23040
@@ -633,6 +641,7 @@ color_point_out:
         push r9
         call XFillArc
         jmp flush
+        ;ret
 ; ############################
 ; # FIN DE LA ZONE DE DESSIN #
 ; ############################
