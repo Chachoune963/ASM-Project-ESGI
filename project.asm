@@ -40,9 +40,7 @@ orientation:
     
     ; cx sera bientôt modifié mais on doit l'utiliser 2 fois
     ; Donc on le sauvegarde
-    
-    
-    
+
     push rcx
     sub rcx, rsi
     sub r8, rdx
@@ -73,7 +71,7 @@ ret
 
 global main
 
-%DEFINE NUM_POINTS 5
+%DEFINE NUM_POINTS 80
 %DEFINE MAX_X 255
 %DEFINE MAX_Y 255
 
@@ -92,14 +90,9 @@ fmt_min: db "Minimum: %d", 10, 0
 test: db "Test", 10, 0
 printx: db "x : %d", 10, 0
 printy: db "y : %d", 10, 0
-jpp: db "On test le point: %d...", 10, 0
-jenaismarre: db "Au PV de %d...", 10, 0
-tuezmoi: db "Depuis le point %d", 10, 0
 env: db "Enveloppe: %d", 10, 0
 coef: db "Coef: %d", 10, 0
 resultat: db "Resultat: %d", 10, 0
-;coordx: dw 164, 61, 126, 216, 244
-;coordy: dw 173, 218, 61, 39, 205
 
 section .bss
 display_name:	resq	1
@@ -357,73 +350,72 @@ checkInside:
     mov rax, 0
     call printf
         
-;fenetre dessin   
-xor     rdi,rdi
-call    XOpenDisplay	; Création de display
-mov     qword[display_name],rax	; rax=nom du display
+    ;###Fenetre dessin ###  
+    xor     rdi,rdi
+    call    XOpenDisplay	; Création de display
+    mov     qword[display_name],rax	; rax=nom du display
+    
+    ; display_name structure
+    ; screen = DefaultScreen(display_name);
+    mov     rax,qword[display_name]
+    mov     eax,dword[rax+0xe0]
+    mov     dword[screen],eax
+    
+    mov rdi,qword[display_name]
+    mov esi,dword[screen]
+    call XRootWindow
+    mov rbx,rax
+    
+    mov rdi,qword[display_name]
+    mov rsi,rbx
+    mov rdx,10
+    mov rcx,10
+    mov r8,400	; largeur
+    mov r9,400	; hauteur
+    push 0xFFFFFF	; background  0xRRGGBB
+    push 0x00FF00
+    push 1
+    call XCreateSimpleWindow
+    mov qword[window],rax
+    
+    mov rdi,qword[display_name]
+    mov rsi,qword[window]
+    mov rdx,131077 ;131072
+    call XSelectInput
+    
+    mov rdi,qword[display_name]
+    mov rsi,qword[window]
+    call XMapWindow
+    
+    mov rsi,qword[window]
+    mov rdx,0
+    mov rcx,0
+    call XCreateGC
+    mov qword[gc],rax
+    
+    mov rdi,qword[display_name]
+    mov rsi,qword[gc]
+    mov rdx,0x000000	                       ; Couleur du crayon
+    call XSetForeground
 
-; display_name structure
-; screen = DefaultScreen(display_name);
-mov     rax,qword[display_name]
-mov     eax,dword[rax+0xe0]
-mov     dword[screen],eax
-
-mov rdi,qword[display_name]
-mov esi,dword[screen]
-call XRootWindow
-mov rbx,rax
-
-mov rdi,qword[display_name]
-mov rsi,rbx
-mov rdx,10
-mov rcx,10
-mov r8,400	; largeur
-mov r9,400	; hauteur
-push 0xFFFFFF	; background  0xRRGGBB
-push 0x00FF00
-push 1
-call XCreateSimpleWindow
-mov qword[window],rax
-
-mov rdi,qword[display_name]
-mov rsi,qword[window]
-mov rdx,131077 ;131072
-call XSelectInput
-
-mov rdi,qword[display_name]
-mov rsi,qword[window]
-call XMapWindow
-
-mov rsi,qword[window]
-mov rdx,0
-mov rcx,0
-call XCreateGC
-mov qword[gc],rax
-
-mov rdi,qword[display_name]
-mov rsi,qword[gc]
-mov rdx,0x000000	; Couleur du crayon
-call XSetForeground
-
-boucle: ; boucle de gestion des évènements
-mov rdi,qword[display_name]
-mov rsi,event
-call XNextEvent
-
-cmp dword[event],ConfigureNotify	; à l'apparition de la fenêtre
-je dessin			; on saute au label 'dessin'
-
-cmp dword[event],KeyPress        ; Si on appuie sur une touche
-je closeDisplay		        ; on saute au label 'closeDisplay' qui ferme la fenêtre
-jmp boucle
+boucle:                                 ; boucle de gestion des évènements
+    mov rdi,qword[display_name]
+    mov rsi,event
+    call XNextEvent
+    
+    cmp dword[event],ConfigureNotify    ; à l'apparition de la fenêtre
+    je dessin       		       ; on saute au label 'dessin'
+    
+    cmp dword[event],KeyPress           ; Si on appuie sur une touche
+    je closeDisplay		       ; on saute au label 'closeDisplay' qui ferme la fenêtre
+    jmp boucle
     
 ;#########################################
 ;#        DEBUT DE LA ZONE DE DESSIN     #
 ;#########################################
 dessin:
 
-    ; boucle dessin point
-    
+    ; boucle dessin point  
     mov rbx, 0  
     draw_point_loop:
 
@@ -460,13 +452,10 @@ dessin:
         movzx rsi, word[sizeEnveloppe]
         mov rax, 0
         call printf
-    
-    
+      
     ; boucle dessin ligne
-    
     mov rbx, 0 
     mov rax, 0
-
     draw_line_loop:
 
         ;couleur de la ligne 1
@@ -475,7 +464,7 @@ dessin:
         mov edx,0x000000	; Couleur du crayon ; noir
         call XSetForeground
         
-        ;###debug
+        ;###DEBUG###
         push rsi
         
         mov rdi, printy
@@ -490,7 +479,7 @@ dessin:
         call printf
         
         pop rsi
-        ;;;;;;
+        ;###END#OF#DEBUG###
         
         ;coordonnées de la ligne 1 (noire)
         
@@ -542,39 +531,39 @@ dessin:
         cmp rbx , rcx
         jb draw_line_loop
         
-        set_draw_last_point:    
-            mov rbx, 0
-            movzx rcx, word[enveloppe+rbx*2]
-            
-            movzx eax, word [coordx+rcx*2]
-            mov dword[x2], eax
-            mov eax, 0
-            
-            movzx eax, word [coordy+rcx*2]
-            mov dword[y2], eax
-            mov eax, 0
-            
-            ; dessin de la ligne 1
-            mov rdi,qword[display_name]
-            mov rsi,qword[window]
-            mov rdx,qword[gc]
-            mov ecx,dword[x1]	; coordonnée source en x
-            mov r8d,dword[y1]	; coordonnée source en y
-            mov r9d,dword[x2]	; coordonnée destination en x
-            push qword[y2]	; coordonnée destination en y
-            call XDrawLine
-            ;jmp flush
+    set_draw_last_point:    
+        mov rbx, 0
+        movzx rcx, word[enveloppe+rbx*2]
         
-color_point_left:
+        movzx eax, word [coordx+rcx*2]
+        mov dword[x2], eax
+        mov eax, 0
+        
+        movzx eax, word [coordy+rcx*2]
+        mov dword[y2], eax
+        mov eax, 0
+        
+        ; dessin de la ligne 1
+        mov rdi,qword[display_name]
+        mov rsi,qword[window]
+        mov rdx,qword[gc]
+        mov ecx,dword[x1]	; coordonnée source en x
+        mov r8d,dword[y1]	; coordonnée source en y
+        mov r9d,dword[x2]	; coordonnée destination en x
+        push qword[y2]	; coordonnée destination en y
+        call XDrawLine
+        
+    color_point_left:
         ;mov rbx, (le point en question)
         movzx rbx, word[minpoint]
+        
         ;couleur du point 1
         mov rdi,qword[display_name]
         mov rsi,qword[gc]
         mov edx,0x0000FF	; Couleur bleu
         call XSetForeground
         
-        ; Dessin du point
+        ;Dessin du point
         mov rdi,qword[display_name]
         mov rsi,qword[window]
         mov rdx,qword[gc]	
@@ -588,17 +577,14 @@ color_point_left:
         push 0
         push r9
         call XFillArc
-        ;jmp flush    
-     
-;
-
-    
-    movzx rsi, byte[isInside]
-    mov rax, 0  
-    cmp rsi ,rax
-    je color_point_out       
-;              
-color_point_in:
+   
+        ;Check inside point
+        movzx rsi, byte[isInside]
+        mov rax, 0  
+        cmp rsi ,rax
+        je color_point_out       
+              
+    color_point_in:
         ;mov rbx, (le point en question)
         ;mov rbx, 2
         ;couleur du point 1
@@ -622,8 +608,7 @@ color_point_in:
         push r9
         call XFillArc
         jmp flush
-        ;ret
-        
+
 color_point_out:
         ;mov rbx, (le point en question)
         mov rbx, 1
@@ -648,7 +633,6 @@ color_point_out:
         push r9
         call XFillArc
         jmp flush
-        ;ret
 ; ############################
 ; # FIN DE LA ZONE DE DESSIN #
 ; ############################
