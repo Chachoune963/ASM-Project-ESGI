@@ -194,8 +194,8 @@ call XNextEvent
 cmp dword[event],ConfigureNotify	; à l'apparition de la fenêtre
 je dessin			; on saute au label 'dessin'
 
-cmp dword[event],KeyPress			; Si on appuie sur une touche
-je closeDisplay					; on saute au label 'closeDisplay' qui ferme la fenêtre
+cmp dword[event],KeyPress        ; Si on appuie sur une touche
+je closeDisplay		        ; on saute au label 'closeDisplay' qui ferme la fenêtre
 jmp boucle
     
 ;#########################################
@@ -337,7 +337,7 @@ color_point_out:
         ;couleur du point 1
         mov rdi,qword[display_name]
         mov rsi,qword[gc]
-        mov edx,0xFF0000	; Couleur vert
+        mov edx,0xFF0000	; Couleur rouge
         call XSetForeground
         
         ; Dessin du point
