@@ -153,13 +153,6 @@ populatey:
     mov ax, word[randnum]
     mov word[coordy+rbx*2], ax
 
-    ;#############
-    mov rdi, fmt_printf
-    movzx rsi, word[coordy+rbx*2]
-    mov rax, 0
-    call printf
-    ;#############
-
     inc rbx
     cmp rbx, NUM_POINTS
     jb populatey
@@ -275,7 +268,7 @@ printenv:
     cmp bx, word[sizeEnveloppe]
     jb printenv    
     
-    
+;fenetre dessin   
 xor     rdi,rdi
 call    XOpenDisplay	; Création de display
 mov     qword[display_name],rax	; rax=nom du display
@@ -442,10 +435,35 @@ dessin:
             push qword[y2]	; coordonnée destination en y
             call XDrawLine
             ;jmp flush
-            
+        
+color_point_left:
+        ;mov rbx, (le point en question)
+        movzx rbx, word[minpoint]
+        ;couleur du point 1
+        mov rdi,qword[display_name]
+        mov rsi,qword[gc]
+        mov edx,0x0000FF	; Couleur vert
+        call XSetForeground
+        
+        ; Dessin du point
+        mov rdi,qword[display_name]
+        mov rsi,qword[window]
+        mov rdx,qword[gc]	
+        movzx rcx, word [coordx+rbx*2] ; x
+        sub ecx,3		
+        movzx r8, word [coordy+rbx*2] ; y
+        sub r8,3
+        mov r9,6
+        mov rax,23040
+        push rax
+        push 0
+        push r9
+        call XFillArc
+        jmp flush    
+        
 color_point_in:
         ;mov rbx, (le point en question)
-        mov rbx,2
+        mov rbx, 6
         ;couleur du point 1
         mov rdi,qword[display_name]
         mov rsi,qword[gc]
