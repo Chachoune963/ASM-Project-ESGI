@@ -503,7 +503,7 @@
    463                                          
    464                                  color_point_in:
    465                                          ;mov rbx, (le point en question)
-   466 0000058D BB06000000                      mov rbx, 6
+   466 0000058D BB02000000                      mov rbx, 2
    467                                          ;couleur du point 1
    468 00000592 488B3C25[00000000]              mov rdi,qword[display_name]
    469 0000059A 488B3425[24000000]              mov rsi,qword[gc]

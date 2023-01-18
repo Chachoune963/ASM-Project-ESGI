@@ -463,7 +463,7 @@ color_point_left:
         
 color_point_in:
         ;mov rbx, (le point en question)
-        mov rbx, 6
+        mov rbx, 2
         ;couleur du point 1
         mov rdi,qword[display_name]
         mov rsi,qword[gc]
