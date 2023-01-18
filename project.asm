@@ -24,7 +24,7 @@ orientation:
     
     sub cx, dx
     
-    cmp ecx, 0
+    cmp cx, 0
     jle clockwise
     
     mov eax, 1
@@ -53,12 +53,12 @@ env: db "Enveloppe: %d", 10, 0
 coef: db "Coef: %d", 10, 0
 resultat: db "Resultat: %d", 10, 0
 
-coordx: dw 0, 2, 1, 2, 3, 0, 3
-coordy: dw 0, 2, 1, 2, 3, 0, 3
+;coordx: dw 0, 2, 1, 2, 3, 0, 3
+;coordy: dw 3, 2, 1, 1, 0, 0, 3
 
 section .bss
-;coordx: resw NUM_POINTS
-;coordy: resw NUM_POINTS
+coordx: resw NUM_POINTS
+coordy: resw NUM_POINTS
 enveloppe: resw NUM_POINTS
 sizeEnveloppe: resb 1
 randnum: resw 1
@@ -72,36 +72,36 @@ section .text
 
 main:
 ; Génération des points du programme
-;mov rbx, 0
-;populatex:
-;    rdrand ax
-;    mov [randnum], ax
-;    modx:
-;        sub word[randnum], MAX_X
-;        cmp word[randnum], MAX_X
-;        jae modx
-;    mov ax, word[randnum]
-;    mov word[coordx+rbx*2], ax
-;    
-;    inc rbx
-;    cmp rbx, NUM_POINTS
-;    jb populatex
-;
-;mov rbx, 0
-;populatey:
-;    rdrand ax
-;    mov word[randnum], ax
-;    mody:
-;        sub word[randnum], MAX_Y
-;        cmp word[randnum], MAX_Y
-;        jae mody
-;    mov ax, word[randnum]
-;    mov word[coordy+rbx*2], ax
-;
-;    inc rbx
-;    cmp rbx, NUM_POINTS
-;    jb populatey
+mov rbx, 0
+populatex:
+    rdrand ax
+    mov [randnum], ax
+    modx:
+        sub word[randnum], MAX_X
+        cmp word[randnum], MAX_X
+        jae modx
+    mov ax, word[randnum]
+    mov word[coordx+rbx*2], ax
     
+    inc rbx
+    cmp rbx, NUM_POINTS
+    jb populatex
+
+mov rbx, 0
+populatey:
+    rdrand ax
+    mov word[randnum], ax
+    mody:
+        sub word[randnum], MAX_Y
+        cmp word[randnum], MAX_Y
+        jae mody
+    mov ax, word[randnum]
+    mov word[coordy+rbx*2], ax
+
+    inc rbx
+    cmp rbx, NUM_POINTS
+    jb populatey
+   
 mov rbx, 0
 printloop:
     mov rdi, printx
@@ -195,12 +195,12 @@ jarvis:
     mov bx, word[Q]
     mov word[P], bx
     inc word[sizeEnveloppe]
-;    cmp word[sizeEnveloppe], NUM_POINTS
-;    jae STOP
+    cmp word[sizeEnveloppe], NUM_POINTS
+    jae STOP
     mov bx, word[minpoint]
     cmp word[P], bx
     jne jarvis
-;STOP:
+STOP:
 
 mov rbx, 0
 printenv:
