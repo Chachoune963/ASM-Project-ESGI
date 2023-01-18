@@ -56,7 +56,7 @@ orientation:
     
     sub cx, dx
     
-    cmp ecx, 0
+    cmp cx, 0
     jle clockwise
     
     mov eax, 1
@@ -70,7 +70,7 @@ ret
 
 global main
 
-%DEFINE NUM_POINTS 7
+%DEFINE NUM_POINTS 40
 %DEFINE MAX_X 255
 %DEFINE MAX_Y 255
 
@@ -95,9 +95,6 @@ tuezmoi: db "Depuis le point %d", 10, 0
 env: db "Enveloppe: %d", 10, 0
 coef: db "Coef: %d", 10, 0
 resultat: db "Resultat: %d", 10, 0
-
-;coordx: dw 0, 2, 1, 2, 3, 0, 3
-;coordy: dw 0, 2, 1, 2, 3, 0, 3
 
 section .bss
 display_name:	resq	1
@@ -163,7 +160,7 @@ printloop:
     movzx rsi, word[coordx+rbx*2]
     mov rax, 0
     call printf
-    
+
     mov rdi, printy
     movzx rsi, word[coordy+rbx*2]
     mov rax, 0
@@ -206,8 +203,9 @@ mov word[P], ax
 mov word[sizeEnveloppe], 0
 jarvis:
     mov ax, word[P]
+    xor rbx, rbx
     movzx rbx, word[sizeEnveloppe]
-    mov [enveloppe+rbx*2], ax
+    mov word[enveloppe+rbx*2], ax
     
     mov word[Q], ax
     inc word[Q]
@@ -250,12 +248,11 @@ jarvis:
     mov bx, word[Q]
     mov word[P], bx
     inc word[sizeEnveloppe]
-;    cmp word[sizeEnveloppe], NUM_POINTS
-;    jae STOP
+
     mov bx, word[minpoint]
     cmp word[P], bx
     jne jarvis
-;STOP:
+
 
 mov rbx, 0
 printenv:
@@ -367,10 +364,17 @@ dessin:
         jb draw_point_loop
         
         
+        mov rdi, printy
+        movzx rsi, word[sizeEnveloppe]
+        mov rax, 0
+        call printf
+    
+    
     ; boucle dessin ligne
     
     mov rbx, 0 
-    mov rax, 0 
+    mov rax, 0
+
     draw_line_loop:
 
         ;couleur de la ligne 1
@@ -379,25 +383,54 @@ dessin:
         mov edx,0x000000	; Couleur du crayon ; noir
         call XSetForeground
         
-        ; coordonnées de la ligne 1 (noire)
-        movzx eax, word [coordx+rbx*2]
+        ;###debug
+        push rsi
+        
+        mov rdi, printy
+        mov rsi, rbx
+        mov rax, 0
+        call printf
+        
+        movzx rcx, word[enveloppe+rbx*2]
+        mov rdi, env
+        mov rsi, rcx
+        mov rax, 0
+        call printf
+        
+        pop rsi
+        ;;;;;;
+        
+        ;coordonnées de la ligne 1 (noire)
+        
+        ;Premier point
+        movzx rcx, word[enveloppe+rbx*2]
+        
+        ;x
+        movzx eax, word [coordx+rcx*2]
         mov dword[x1],eax
         mov eax, 0
-        
-        movzx eax, word [coordy+rbx*2]
+
+        ;y
+        movzx eax, word [coordy+rcx*2]
         mov dword[y1],eax
         mov eax, 0
         
+        ;Second point
         inc rbx
-           
-        cmp rbx , NUM_POINTS
+        
+        ;if rcx = sizeEnveloppe, go back to 1rst point
+        mov rcx, 0
+        movzx rcx, word[sizeEnveloppe]  
+        cmp rbx , rcx
         je set_draw_last_point
         
-        movzx eax, word [coordx+rbx*2]
+        movzx rcx, word[enveloppe+rbx*2]
+        
+        movzx eax, word [coordx+rcx*2]
         mov dword[x2], eax
         mov eax, 0
         
-        movzx eax, word [coordy+rbx*2]
+        movzx eax, word [coordy+rcx*2]
         mov dword[y2], eax
         mov eax, 0
         
@@ -412,16 +445,20 @@ dessin:
         call XDrawLine
         
         ;check if end loop
-        cmp rbx, NUM_POINTS
+        mov rcx, 0
+        movzx rcx, word[sizeEnveloppe]
+        cmp rbx , rcx
         jb draw_line_loop
         
-        set_draw_last_point:
+        set_draw_last_point:    
             mov rbx, 0
-            movzx eax, word [coordx+rbx*2]
+            movzx rcx, word[enveloppe+rbx*2]
+            
+            movzx eax, word [coordx+rcx*2]
             mov dword[x2], eax
             mov eax, 0
             
-            movzx eax, word [coordy+rbx*2]
+            movzx eax, word [coordy+rcx*2]
             mov dword[y2], eax
             mov eax, 0
             
