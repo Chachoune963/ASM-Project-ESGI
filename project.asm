@@ -442,7 +442,7 @@ color_point_left:
         ;couleur du point 1
         mov rdi,qword[display_name]
         mov rsi,qword[gc]
-        mov edx,0x0000FF	; Couleur vert
+        mov edx,0x0000FF	; Couleur bleu
         call XSetForeground
         
         ; Dessin du point
@@ -459,7 +459,7 @@ color_point_left:
         push 0
         push r9
         call XFillArc
-        jmp flush    
+        ;jmp flush    
         
 color_point_in:
         ;mov rbx, (le point en question)
