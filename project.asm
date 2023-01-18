@@ -2,14 +2,19 @@ extern printf
 
 global main
 
-%DEFINE NUM_POINTS 20
+%DEFINE NUM_POINTS 7
 %DEFINE MAX_X 255
 %DEFINE MAX_Y 255
 
 section .data
-pointcheck: db "Passage du point %d", 10, 0
-fmt_printf_test: db "Test de %d", 10, 0
-fmt_printf: db "Reussite: %d", 10, 0
+printx: db "x : %d", 10, 0
+printy: db "y : %d", 10, 0
+jpp: db "On test le point: %d...", 10, 0
+jenaismarre: db "Au PV de %d...", 10, 0
+tuezmoi: db "Depuis le point %d", 10, 0
+env: db "Enveloppe: %d", 10, 0
+coef: db "Coef: %d", 10, 0
+resultat: db "Resultat: %d", 10, 0
 
 section .bss
 coordx: resw NUM_POINTS
@@ -18,6 +23,9 @@ enveloppe: resw NUM_POINTS
 sizeEnveloppe: resb 1
 randnum: resw 1
 minpoint: resw 1
+pv: resd 1
+
+bestcandidate: resw 1
 
 section .text
 main:
@@ -52,6 +60,22 @@ populatey:
     cmp rbx, NUM_POINTS
     jb populatey
     
+mov rbx, 0
+printloop:
+    mov rdi, printx
+    movzx rsi, word[coordx+rbx*2]
+    mov rax, 0
+    call printf
+    
+    mov rdi, printy
+    movzx rsi, word[coordy+rbx*2]
+    mov rax, 0
+    call printf
+    
+    inc rbx
+    cmp rbx, NUM_POINTS
+    jb printloop
+        
 ; Trouver le point le plus à gauche
 mov rbx, 0
 mov word[minpoint], bx
@@ -79,89 +103,128 @@ minAlgo:
 ; rax = Prochain point (P)
 ; rbx = Index actuel de enveloppe (Pas d'équivalent, à ne pas utiliser pr l'instant)
 ; rcx = Prochain candidat de P (Q)
-movzx rax, word[minpoint]
-mov rbx, 0
-mov rcx, 0
+xor rax, rax
+xor rbx, rbx
+xor rcx, rcx
+mov ax, word[minpoint]
 jarvis:
-    ; On mets le dernier resultat dans enveloppe
-    mov word[enveloppe+rbx*2], ax
-        
-        push rax
-        mov rdi, fmt_printf
-        mov si, word[enveloppe+rbx*2]
-        mov rax, 0
-        call printf
-        pop rax
-
-    movzx rcx, ax
+    mov [enveloppe+rbx*2], ax
     
+    mov cx, ax
+    inc cx
+    cmp cx, NUM_POINTS
+    jb nofix
+    
+    sub cx, NUM_POINTS
+    
+    nofix:
     push rbx
-    ; rbx devient (I)
-    mov rbx, 0
-    parcoursPoints:
+    xor rbx, rbx
+    parcoursListe:
+        mov r9w, word[coordy+rbx*2]
+        sub r9w, word[coordy+rax*2]
         
+        mov r10w, word[coordx+rcx*2]
+        sub r10w, word[coordx+rbx*2]
+        
+        mov rdi, coef
+        movsx rsi, r9w
         push rax
-        mov rdi, pointcheck
-        movzx rsi, word[coordy+rbx*2]
+        push rbx
+        push rcx
         mov rax, 0
         call printf
+        pop rcx
+        pop rbx
         pop rax
-
-        ; Calcul du produit vectoriel
-        ; r8w = xP
-        mov r8w, word[coordx+rax*2]
-        ; r9w = yP
-        mov r9w, word[coordy+rax*2]
-        ; r10w = xI
-        mov r10w, word[coordx+rbx*2]
-        ; r11w = yI
-        mov r11w, word[coordy+rbx*2]
-        ; r10 = r10 - r8 = xPI
-        sub r10w, r8w
-        ; r11 = r11 - r9 = yPI
-        sub r11w, r9w
-        ; r8w = xI
-        mov r8w, word[coordx+rbx*2]
-        ; r9w = yI
-        mov r9w, word[coordy+rbx*2]
-        ; r12 = xQ
-        mov r12w, word[coordx+rcx*2]
-        ; r13 = yQ
-        mov r13w, word[coordy+rcx*2]
-        ; r12 = r12 - r8 = xIQ
-        sub r12w, r8w
-        ; r13 = r13 - r9 = yIQ
-        sub r13w, r9w
-        ; xIQ * yPI = r12 * r11
-        imul r12w, r11w
-        ; xPI * yIQ = r10 * r13
-        imul r10w, r13w
-        ; Produit vectoriel => r12
-        sub r12w, r10w
-        cmp r12w, 0
-        jl notcandidate
+        
+        imul r9w, r10w
+        
+        mov rdi, coef
+        movsx rsi, r10w
+        push rax
+        push rbx
+        push rcx
+        mov rax, 0
+        call printf
+        pop rcx
+        pop rbx
+        pop rax
+        
+        mov rdi, resultat
+        mov esi, r9d
+        push rax
+        push rbx
+        push rcx
+        mov rax, 0
+        call printf
+        pop rcx
+        pop rbx
+        pop rax
+        
+        
+        mov r11w, word[coordx+rbx*2]
+        sub r11w, word[coordx+rax*2]
+        
+        mov r12w, word[coordy+rcx*2]
+        mov r12w, word[coordy+rbx*2]
+        
+        imul r11w, r12w
+        
+        sub r9d, r11d
+        mov dword[pv], r9d
+                
+;        mov rdi, jpp
+;        mov rsi, rbx
+;        push rax
+;        push rbx
+;        push rcx
+;        mov rax, 0
+;        call printf
+;        pop rcx
+;        pop rbx
+;        pop rax
+;        
+;        mov rdi, jenaismarre
+;        mov esi, dword[pv]
+;        push rax
+;        push rbx
+;        push rcx
+;        mov rax, 0
+;        call printf
+;        pop rcx
+;        pop rbx
+;        pop rax
+;        
+;        mov rdi, tuezmoi
+;        mov rsi, rcx
+;        push rax
+;        push rbx
+;        push rcx
+;        mov rax, 0
+;        call printf
+;        pop rcx
+;        pop rbx
+;        pop rax
+        
+        cmp dword[pv], 0
+        jle nocandid
         
         mov rcx, rbx
         
-        push rax
-        mov rdi, fmt_printf
-        mov rsi, rcx
-        mov rax, 0
-        call printf
-        pop rax
-        
-        notcandidate:
+        nocandid:
         inc rbx
-        
         cmp rbx, NUM_POINTS
-        jb parcoursPoints
-    ; rbx redevient l'index actuel de l'enveloppe)
+        jb parcoursListe
     pop rbx
-    inc rbx
-    mov rax, rcx    
     
-    cmp ax, word[enveloppe]
+    mov rax, rcx
+    inc rbx
+    cmp rbx, NUM_POINTS
+    jae STOP
+    cmp ax, word[minpoint]
     jne jarvis
+STOP:        
 
 ; Pour fermer le programme proprement :
 mov    rax, 60         
