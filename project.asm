@@ -73,7 +73,7 @@ ret
 
 global main
 
-%DEFINE NUM_POINTS 40
+%DEFINE NUM_POINTS 5
 %DEFINE MAX_X 255
 %DEFINE MAX_Y 255
 
@@ -98,8 +98,8 @@ tuezmoi: db "Depuis le point %d", 10, 0
 env: db "Enveloppe: %d", 10, 0
 coef: db "Coef: %d", 10, 0
 resultat: db "Resultat: %d", 10, 0
-;coordx: dw 10, 102, 102, 108, 19
-;coordy: dw 171, 3, 182, 103, 25
+;coordx: dw 164, 61, 126, 216, 244
+;coordy: dw 173, 218, 61, 39, 205
 
 section .bss
 display_name:	resq	1
@@ -130,7 +130,6 @@ checkIndex: resw 1
 section .text
 
 main:
-
 ;Génération des points du programme
 mov rbx, 0
 populatex:
@@ -296,10 +295,12 @@ mov word[checkIndex], 0
 mov word[isInside], 1
 checkInside:
     movzx rax, word[checkIndex]
+    
     mov bx, word[enveloppe+rax*2]
     mov word[P], bx
-    inc bx
-    cmp word[sizeEnveloppe], bx
+    
+    inc ax
+    cmp word[sizeEnveloppe], ax
     jne nolooped
     
     mov bx, word[enveloppe]
@@ -307,28 +308,31 @@ checkInside:
     jmp endlooped
     
     nolooped:
-    mov bx, word[enveloppe+(rax+1)*2]
+    mov bx, word[enveloppe+(rax)*2]
     mov word[I], bx
     
     endlooped:
+    mov bx, word[P]
+    cmp word[I], bx
+    je nocandid
     ; Coord de P dans di et si
-    movzx rax, word[P]
-    mov di, word[coordx+rax*2]
-    mov si, word[coordy+rax*2]
-    
+    movsx rax, word[P]
+    movsx rdi, word[coordx+rax*2]
+    movsx rsi, word[coordy+rax*2]
+        
     ; Coord de I dans dx et cx
-    movzx rax, word[I]
-    mov dx, word[coordx+rax*2]
-    mov cx, word[coordy+rax*2]
+    movsx rax, word[I]
+    movsx rdx, word[coordx+rax*2]
+    movsx rcx, word[coordy+rax*2]
     
     ; Coord de lastPoint dans r8w et r9w
-    mov r8w, word[lastPointX]
-    mov r9w, word[lastPointY]
+    movsx r8, word[lastPointX]
+    movsx r9, word[lastPointY]
     mov rax, 0
     call orientation
     
     cmp eax, 0
-    jne nextCheck
+    jg nextCheck
     
     mov byte[isInside], 0
     
