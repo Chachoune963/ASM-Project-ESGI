@@ -95,8 +95,8 @@ tuezmoi: db "Depuis le point %d", 10, 0
 env: db "Enveloppe: %d", 10, 0
 coef: db "Coef: %d", 10, 0
 resultat: db "Resultat: %d", 10, 0
-coordx: dw 10, 102, 102, 108, 19
-coordy: dw 171, 3, 182, 103, 25
+;coordx: dw 10, 102, 102, 108, 19
+;coordy: dw 171, 3, 182, 103, 25
 
 section .bss
 display_name:	resq	1
@@ -108,8 +108,8 @@ height:        	resd	1
 window:		resq	1
 gc:		resq	1
 
-;coordx: resw NUM_POINTS
-;coordy: resw NUM_POINTS
+coordx: resw NUM_POINTS
+coordy: resw NUM_POINTS
 enveloppe: resw NUM_POINTS
 sizeEnveloppe: resb 1
 randnum: resw 1
@@ -128,39 +128,39 @@ section .text
 
 main:
 ; Génération des points du programme
-;mov rbx, 0
-;populatex:
-;    rdrand ax
-;    mov [randnum], ax
-;    modx:
-;        sub word[randnum], MAX_X
-;        cmp word[randnum], MAX_X
-;        jae modx
-;    mov ax, word[randnum]
-;    mov word[coordx+rbx*2], ax
-;    
-;    inc rbx
-;    cmp rbx, NUM_POINTS
-;    jb populatex
-
-;mov rbx, 0
-;populatey:
-;    stc
-;    checkcf:
-;        rdrand ax
-;    jnc checkcf
-;    mov word[randnum], ax
-;    mody:
-;        sub word[randnum], MAX_Y
-;        cmp word[randnum], MAX_Y
-;        jae mody
-;    mov ax, word[randnum]
-;    mov word[coordy+rbx*2], ax
-;
-;    inc rbx
-;    cmp rbx, NUM_POINTS
-;    jb populatey
+mov rbx, 0
+populatex:
+    rdrand ax
+    mov [randnum], ax
+    modx:
+        sub word[randnum], MAX_X
+        cmp word[randnum], MAX_X
+        jae modx
+    mov ax, word[randnum]
+    mov word[coordx+rbx*2], ax
     
+    inc rbx
+    cmp rbx, NUM_POINTS
+    jb populatex
+
+mov rbx, 0
+populatey:
+    stc
+    checkcf:
+        rdrand ax
+    jnc checkcf
+    mov word[randnum], ax
+    mody:
+        sub word[randnum], MAX_Y
+        cmp word[randnum], MAX_Y
+        jae mody
+    mov ax, word[randnum]
+    mov word[coordy+rbx*2], ax
+
+    inc rbx
+    cmp rbx, NUM_POINTS
+    jb populatey
+   
 mov rbx, 0
 printloop:
     mov rdi, printx
